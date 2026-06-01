@@ -21,13 +21,13 @@ public class AccountService {
     private final AccountRepository accountRepository;
     private final UserRepository userRepository;
     private final StringRedisTemplate redisTemplate;
-    private final KafkaProducerService kafkaProducerService;
+    //private final KafkaProducerService kafkaProducerService;
 
-    public AccountService(AccountRepository accountRepository, UserRepository userRepository, StringRedisTemplate redisTemplate, KafkaProducerService kafkaProducerService) {
+    public AccountService(AccountRepository accountRepository, UserRepository userRepository, StringRedisTemplate redisTemplate /*KafkaProducerService kafkaProducerService)*/ ){
         this.accountRepository = accountRepository;
         this.userRepository = userRepository;
         this.redisTemplate = redisTemplate;
-        this.kafkaProducerService = kafkaProducerService;   
+        //this.kafkaProducerService = kafkaProducerService;   
     }
 
 
