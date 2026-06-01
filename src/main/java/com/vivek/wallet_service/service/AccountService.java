@@ -1,20 +1,18 @@
 package com.vivek.wallet_service.service;
 
 import java.math.BigDecimal;
+import java.time.Duration;
 
+import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import com.vivek.wallet_service.dto.TransferEvent;
 import com.vivek.wallet_service.entity.Account;
 import com.vivek.wallet_service.entity.User;
 import com.vivek.wallet_service.repository.AccountRepository;
 import com.vivek.wallet_service.repository.UserRepository;
-
-import java.time.Duration;
-
-import org.springframework.data.redis.core.StringRedisTemplate;
-import org.springframework.transaction.annotation.Transactional;
 
 //This is going to contain the business logic for the account service
 @Service
@@ -146,7 +144,7 @@ public class AccountService {
         event.setToEmail(toEmail);
         event.setAmount(amount.toString());
 
-        kafkaProducerService.sendTransferEvent(event);
+        //kafkaProducerService.sendTransferEvent(event);
 
         redisTemplate.opsForValue().set(idempotencyKey,"processed",Duration.ofMinutes(10));
         

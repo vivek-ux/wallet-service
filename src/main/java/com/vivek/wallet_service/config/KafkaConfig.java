@@ -5,6 +5,7 @@ import java.util.Map;
 
 import org.apache.kafka.clients.producer.ProducerConfig;
 import org.apache.kafka.common.serialization.StringSerializer;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.kafka.core.DefaultKafkaProducerFactory;
@@ -14,16 +15,17 @@ import org.springframework.kafka.core.ProducerFactory;
 @Configuration
 public class KafkaConfig {
 
-    @Bean
-    public ProducerFactory<String, String>
-    producerFactory() {
+    @Value("${spring.kafka.bootstrap-servers}")
+    private String bootstrapServers;
 
-        Map<String, Object> config =
-                new HashMap<>();
+    @Bean
+    public ProducerFactory<String, String> producerFactory() {
+
+        Map<String, Object> config = new HashMap<>();
 
         config.put(
                 ProducerConfig.BOOTSTRAP_SERVERS_CONFIG,
-                "localhost:9092"
+                bootstrapServers
         );
 
         config.put(
@@ -36,17 +38,11 @@ public class KafkaConfig {
                 StringSerializer.class
         );
 
-        return new DefaultKafkaProducerFactory<>(
-                config
-        );
+        return new DefaultKafkaProducerFactory<>(config);
     }
 
     @Bean
-    public KafkaTemplate<String, String>
-    kafkaTemplate() {
-
-        return new KafkaTemplate<>(
-                producerFactory()
-        );
+    public KafkaTemplate<String, String> kafkaTemplate() {
+        return new KafkaTemplate<>(producerFactory());
     }
 }
