@@ -16,4 +16,5 @@ public class KafkaConsumerService {
 
         System.out.println(message);
     }
+
 }
