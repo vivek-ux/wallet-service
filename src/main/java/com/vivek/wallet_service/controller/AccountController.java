@@ -1,6 +1,7 @@
 package com.vivek.wallet_service.controller;
 
 import java.math.BigDecimal;
+import java.util.List;
 
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -11,6 +12,7 @@ import org.springframework.web.bind.annotation.RestController;
 
 import com.vivek.wallet_service.dto.CreateAccountRequest;
 import com.vivek.wallet_service.dto.CreateTransferRequest;
+import com.vivek.wallet_service.dto.TransactionResponse;
 import com.vivek.wallet_service.service.AccountService;
 
 @RestController
@@ -26,6 +28,11 @@ public class AccountController {
     @GetMapping("/me/balance")
     public BigDecimal getMyBalance() {
         return accountService.getMyBalance();
+    }
+
+    @GetMapping("/me/transactions")
+    public List<TransactionResponse> getMyTransactions() {
+        return accountService.getMyTransactions();
     }
 
     @PostMapping("/create")

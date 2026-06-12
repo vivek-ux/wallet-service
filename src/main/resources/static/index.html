@@ -1,0 +1,123 @@
+<!doctype html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Wallet Service</title>
+    <link rel="stylesheet" href="/styles.css">
+</head>
+<body>
+    <main class="shell">
+        <section class="topbar">
+            <div>
+                <p class="eyebrow">Wallet Service</p>
+                <h1>Payments Dashboard</h1>
+            </div>
+            <div class="session">
+                <span id="sessionState">Signed out</span>
+                <button id="logoutButton" class="ghost" type="button">Logout</button>
+            </div>
+        </section>
+
+        <section class="grid auth-grid">
+            <form id="registerForm" class="panel">
+                <h2>Register</h2>
+                <label>
+                    Name
+                    <input name="name" autocomplete="name" required>
+                </label>
+                <label>
+                    Email
+                    <input name="email" type="email" autocomplete="email" required>
+                </label>
+                <label>
+                    Password
+                    <input name="password" type="password" autocomplete="new-password" required>
+                </label>
+                <button type="submit">Create User</button>
+            </form>
+
+            <form id="loginForm" class="panel">
+                <h2>Login</h2>
+                <label>
+                    Email
+                    <input name="email" type="email" autocomplete="email" required>
+                </label>
+                <label>
+                    Password
+                    <input name="password" type="password" autocomplete="current-password" required>
+                </label>
+                <button type="submit">Get Token</button>
+            </form>
+        </section>
+
+        <section class="dashboard">
+            <section class="balance-strip">
+                <div>
+                    <p class="eyebrow">Current Balance</p>
+                    <strong id="balanceValue">--</strong>
+                </div>
+                <button id="refreshButton" type="button">Refresh</button>
+            </section>
+
+            <section class="grid action-grid">
+                <form id="accountForm" class="panel">
+                    <h2>Create Account</h2>
+                    <label>
+                        Initial Balance
+                        <input name="initialBalance" type="number" min="0" step="0.01" required>
+                    </label>
+                    <button type="submit">Create Account</button>
+                </form>
+
+                <form id="transferForm" class="panel">
+                    <h2>Transfer</h2>
+                    <label>
+                        Recipient Email
+                        <input name="toEmail" type="email" autocomplete="email" required>
+                    </label>
+                    <label>
+                        Amount
+                        <input name="amount" type="number" min="0.01" step="0.01" required>
+                    </label>
+                    <label>
+                        Idempotency Key
+                        <input name="idempotencyKey" placeholder="Auto generated if empty">
+                    </label>
+                    <button type="submit">Send Money</button>
+                </form>
+            </section>
+
+            <section class="panel table-panel">
+                <div class="table-header">
+                    <h2>Transaction History</h2>
+                    <button id="historyButton" class="ghost" type="button">Reload</button>
+                </div>
+                <div class="table-wrap">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>ID</th>
+                                <th>From</th>
+                                <th>To</th>
+                                <th>Amount</th>
+                                <th>Status</th>
+                                <th>Created</th>
+                            </tr>
+                        </thead>
+                        <tbody id="transactionRows">
+                            <tr>
+                                <td colspan="6">No transactions loaded</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </section>
+        </section>
+
+        <p id="message" class="message" role="status"></p>
+    </main>
+
+    <script src="/app.js"></script>
+</body>
+</html>
