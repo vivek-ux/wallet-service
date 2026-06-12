@@ -14,76 +14,41 @@ import io.jsonwebtoken.security.Keys;
 @Service
 public class JwtService {
 
-    // secret key used for signing + validation
-    private final SecretKey secretKey =
-            Keys.hmacShaKeyFor(
-                    "mysecretkeymysecretkeymysecretkey12"
-                            .getBytes(StandardCharsets.UTF_8)
-            );
+    private static final long TOKEN_EXPIRATION_MILLIS = 1000 * 60 * 60;
+    private static final String SECRET = "mysecretkeymysecretkeymysecretkey12";
 
-    // generate JWT token
+    private final SecretKey secretKey = Keys.hmacShaKeyFor(SECRET.getBytes(StandardCharsets.UTF_8));
+
     public String generateToken(String email) {
+        Date now = new Date();
+        Date expiresAt = new Date(System.currentTimeMillis() + TOKEN_EXPIRATION_MILLIS);
 
         return Jwts.builder()
-
-                // user identity
                 .subject(email)
-
-                // token creation time
-                .issuedAt(new Date())
-
-                // expiry time (1 hour)
-                .expiration(
-                        new Date(
-                                System.currentTimeMillis()
-                                        + 1000 * 60 * 60
-                        )
-                )
-
-                // sign token
+                .issuedAt(now)
+                .expiration(expiresAt)
                 .signWith(secretKey)
-
-                // create token string
                 .compact();
     }
 
-    // extract email from token
     public String extractEmail(String token) {
-
-        return extractClaims(token)
-                .getSubject();
+        return extractClaims(token).getSubject();
     }
 
-    // validate token
     public boolean isTokenValid(String token) {
-
         try {
-
             extractClaims(token);
-
             return true;
-
         } catch (Exception e) {
-
             return false;
         }
     }
 
-    // parse token + get claims
     private Claims extractClaims(String token) {
-
         return Jwts.parser()
-
-                // verify using same secret key
                 .verifyWith(secretKey)
-
-                // build parser
                 .build()
-
-                // parse token
                 .parseSignedClaims(token)
-
-                // get payload/body
                 .getPayload();
     }
 }

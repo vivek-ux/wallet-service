@@ -13,23 +13,19 @@ import com.vivek.wallet_service.service.AuthService;
 public class AuthController {
 
     private final AuthService authService;
-    public AuthController(AuthService authService){
+
+    public AuthController(AuthService authService) {
         this.authService = authService;
     }
 
-
     @PostMapping("/register")
-    public String register(@RequestBody User userDetails){
+    public String register(@RequestBody User userDetails) {
         authService.register(userDetails);
-        return  "User registered successfully";
+        return "User registered successfully";
     }
 
     @PostMapping("/login")
-    public String login(@RequestBody User userDetails){
-
+    public String login(@RequestBody User userDetails) {
         return authService.login(userDetails);
     }
-
-
-
 }

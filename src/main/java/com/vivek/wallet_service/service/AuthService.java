@@ -11,45 +11,23 @@ public class AuthService {
 
     private final UserRepository userRepository;
     private final JwtService jwtService;
+    private final BCryptPasswordEncoder passwordEncoder = new BCryptPasswordEncoder();
 
-    // BCrypt object for hashing + verifying passwords
-    private final BCryptPasswordEncoder passwordEncoder =
-            new BCryptPasswordEncoder();
-
-    public AuthService(UserRepository userRepository,JwtService jwtService) {
+    public AuthService(UserRepository userRepository, JwtService jwtService) {
         this.userRepository = userRepository;
         this.jwtService = jwtService;
     }
 
-    // Register new user
     public void register(User userDetails) {
-
-        // convert raw password -> hashed password
-        String hashedPassword =
-                passwordEncoder.encode(userDetails.getPassword());
-
-        // replace raw password with hashed one
-        userDetails.setPassword(hashedPassword);
-
-        // save user
+        userDetails.setPassword(passwordEncoder.encode(userDetails.getPassword()));
         userRepository.save(userDetails);
     }
 
-    // Login user
     public String login(User userDetails) {
-
         User user = userRepository.findByEmail(userDetails.getEmail())
-                .orElseThrow(() ->
-                        new RuntimeException("User not found"));
+                .orElseThrow(() -> new RuntimeException("User not found"));
 
-        // compare raw password with hashed password
-        boolean passwordMatches =
-                passwordEncoder.matches(
-                        userDetails.getPassword(),
-                        user.getPassword()
-                );
-
-        if (!passwordMatches) {
+        if (!passwordEncoder.matches(userDetails.getPassword(), user.getPassword())) {
             throw new RuntimeException("Invalid password");
         }
 

@@ -25,29 +25,26 @@ public class AccountController {
 
     @GetMapping("/me/balance")
     public BigDecimal getMyBalance() {
-
         return accountService.getMyBalance();
     }
 
     @PostMapping("/create")
-    public String createAccount( @RequestBody CreateAccountRequest request) {
-
+    public String createAccount(@RequestBody CreateAccountRequest request) {
         accountService.createAccount(request.getInitialBalance());
-
         return "Account created";
     }
 
     @PostMapping("/transfer")
-    public String transferMoney(@RequestBody CreateTransferRequest request, @RequestHeader("Idempotency-Key")
-        String idempotencyKey) {
-
+    public String transferMoney(
+            @RequestBody CreateTransferRequest request,
+            @RequestHeader("Idempotency-Key") String idempotencyKey
+    ) {
         accountService.transferMoney(
                 request.getToEmail(),
                 request.getAmount(),
                 idempotencyKey
         );
 
-    return "Transfer successful";
+        return "Transfer successful";
     }
-    
 }

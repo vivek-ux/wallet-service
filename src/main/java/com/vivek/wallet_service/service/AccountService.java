@@ -14,140 +14,123 @@ import com.vivek.wallet_service.entity.User;
 import com.vivek.wallet_service.repository.AccountRepository;
 import com.vivek.wallet_service.repository.UserRepository;
 
-//This is going to contain the business logic for the account service
 @Service
 public class AccountService {
+
+    private static final Duration IDEMPOTENCY_TTL = Duration.ofMinutes(10);
+    private static final String IDEMPOTENCY_PROCESSED_VALUE = "processed";
 
     private final AccountRepository accountRepository;
     private final UserRepository userRepository;
     private final StringRedisTemplate redisTemplate;
     private final KafkaProducerService kafkaProducerService;
 
-    public AccountService(AccountRepository accountRepository, UserRepository userRepository, StringRedisTemplate redisTemplate,KafkaProducerService  kafkaProducerService ){
+    public AccountService(
+            AccountRepository accountRepository,
+            UserRepository userRepository,
+            StringRedisTemplate redisTemplate,
+            KafkaProducerService kafkaProducerService
+    ) {
         this.accountRepository = accountRepository;
         this.userRepository = userRepository;
         this.redisTemplate = redisTemplate;
-        this.kafkaProducerService = kafkaProducerService;   
+        this.kafkaProducerService = kafkaProducerService;
     }
 
-
-   //This method will create a new account for a user with an initial balance
     public void createAccount(BigDecimal initialBalance) {
-
-    // get logged in user email
-        String email = (String)
-                SecurityContextHolder
-                        .getContext()
-                        .getAuthentication()
-                        .getPrincipal();
-
-        // find user
-        User user = userRepository
-                .findByEmail(email)
-                .orElseThrow(() ->
-                        new RuntimeException(
-                                "User not found"
-                        ));
-
-        // create account
-        Account account =
-                new Account(user, initialBalance);
-
+        Account account = new Account(getCurrentUser(), initialBalance);
         accountRepository.save(account);
     }
 
-    //public BigDecimal getAccountBalance(Long accountId){
-        
-    //}
-
-   public BigDecimal getMyBalance() {
-
-        // get current logged in user's email
-        String email = (String)
-                SecurityContextHolder
-                        .getContext()
-                        .getAuthentication()
-                        .getPrincipal();
-
-        // find user by email   
-        User user = userRepository
-                .findByEmail(email)
-                .orElseThrow(() ->
-                        new RuntimeException("User not found"));
-
-        // find account belonging to user
-        Account account =
-                accountRepository.findByUser(user)
-                        .orElseThrow(() ->
-                                new RuntimeException(
-                                        "Account not found"
-                                ));
-
-        return account.getBalance();
+    public BigDecimal getMyBalance() {
+        return getAccountForUser(getCurrentUser(), "Account not found").getBalance();
     }
 
-   @Transactional
-   public void transferMoney(String toEmail, BigDecimal amount, String idempotencyKey) {
+    @Transactional
+    public void transferMoney(String toEmail, BigDecimal amount, String idempotencyKey) {
+        rejectDuplicateRequest(idempotencyKey);
+        validateTransferAmount(amount);
 
-        Boolean alreadyExists =
-        redisTemplate.hasKey(idempotencyKey);
+        User fromUser = getCurrentUser("Sender user not found");
+        User toUser = getUserByEmail(toEmail, "Recipient user not found");
+        validateDifferentUsers(fromUser, toUser);
 
-        if (Boolean.TRUE.equals(alreadyExists)) {
-            throw new RuntimeException(
-                    "Duplicate request"
-            );
-        }
-        
-        if (amount.compareTo(BigDecimal.ZERO) <= 0) {
-            throw new RuntimeException("Invalid amount");
-        }
-        String fromEmail = (String)
-                SecurityContextHolder
-                        .getContext()
-                        .getAuthentication()
-                        .getPrincipal();
+        Account fromAccount = getAccountForUser(fromUser, "Sender account not found");
+        Account toAccount = getAccountForUser(toUser, "Recipient account not found");
+        validateSufficientBalance(fromAccount, amount);
 
-        User fromUser = userRepository.findByEmail(fromEmail)   
-                .orElseThrow(() ->
-                        new RuntimeException("Sender user not found"));
-        
-        User toUser = userRepository.findByEmail(toEmail)
-                .orElseThrow(() ->
-                        new RuntimeException("Recipient user not found"));
-
-        if(fromUser.getEmail().equals(toUser.getEmail())){
-            throw new RuntimeException("Cannot transfer to self");
-        }
-
-        Account fromAccount = accountRepository.findByUser(fromUser)
-                .orElseThrow(() ->
-                        new RuntimeException("Sender account not found"));
-
-        Account toAccount = accountRepository.findByUser(toUser)
-                .orElseThrow(() ->
-                        new RuntimeException("Recipient account not found"));
-
-        if(fromAccount.getBalance().compareTo(amount) < 0){
-            throw new RuntimeException("Insufficient balance");
-        }
-        
         fromAccount.setBalance(fromAccount.getBalance().subtract(amount));
-        toAccount.setBalance(toAccount.getBalance().add(amount));       
+        toAccount.setBalance(toAccount.getBalance().add(amount));
 
         accountRepository.save(fromAccount);
         accountRepository.save(toAccount);
 
-        TransferEvent event =
-        new TransferEvent();
+        sendTransferEvent(fromUser.getEmail(), toEmail, amount);
+        markRequestProcessed(idempotencyKey);
+    }
 
+    private void rejectDuplicateRequest(String idempotencyKey) {
+        if (Boolean.TRUE.equals(redisTemplate.hasKey(idempotencyKey))) {
+            throw new RuntimeException("Duplicate request");
+        }
+    }
+
+    private void validateTransferAmount(BigDecimal amount) {
+        if (amount.compareTo(BigDecimal.ZERO) <= 0) {
+            throw new RuntimeException("Invalid amount");
+        }
+    }
+
+    private User getCurrentUser() {
+        return getCurrentUser("User not found");
+    }
+
+    private User getCurrentUser(String errorMessage) {
+        return getUserByEmail(getCurrentUserEmail(), errorMessage);
+    }
+
+    private String getCurrentUserEmail() {
+        return (String) SecurityContextHolder
+                .getContext()
+                .getAuthentication()
+                .getPrincipal();
+    }
+
+    private User getUserByEmail(String email, String errorMessage) {
+        return userRepository.findByEmail(email)
+                .orElseThrow(() -> new RuntimeException(errorMessage));
+    }
+
+    private Account getAccountForUser(User user, String errorMessage) {
+        return accountRepository.findByUser(user)
+                .orElseThrow(() -> new RuntimeException(errorMessage));
+    }
+
+    private void validateDifferentUsers(User fromUser, User toUser) {
+        if (fromUser.getEmail().equals(toUser.getEmail())) {
+            throw new RuntimeException("Cannot transfer to self");
+        }
+    }
+
+    private void validateSufficientBalance(Account account, BigDecimal amount) {
+        if (account.getBalance().compareTo(amount) < 0) {
+            throw new RuntimeException("Insufficient balance");
+        }
+    }
+
+    private void sendTransferEvent(String fromEmail, String toEmail, BigDecimal amount) {
+        TransferEvent event = new TransferEvent();
         event.setFromEmail(fromEmail);
         event.setToEmail(toEmail);
         event.setAmount(amount.toString());
-
         kafkaProducerService.sendTransferEvent(event);
+    }
 
-        redisTemplate.opsForValue().set(idempotencyKey,"processed",Duration.ofMinutes(10));
-        
-
-   }
+    private void markRequestProcessed(String idempotencyKey) {
+        redisTemplate.opsForValue().set(
+                idempotencyKey,
+                IDEMPOTENCY_PROCESSED_VALUE,
+                IDEMPOTENCY_TTL
+        );
+    }
 }

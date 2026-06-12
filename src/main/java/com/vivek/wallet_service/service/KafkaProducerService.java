@@ -8,6 +8,8 @@ import com.vivek.wallet_service.dto.TransferEvent;
 @Service
 public class KafkaProducerService {
 
+    private static final String MONEY_TRANSFERS_TOPIC = "money-transfers";
+
     private final KafkaTemplate<String, String> kafkaTemplate;
 
     public KafkaProducerService(KafkaTemplate<String, String> kafkaTemplate) {
@@ -15,17 +17,12 @@ public class KafkaProducerService {
     }
 
     public void sendTransferEvent(TransferEvent event) {
+        String message = event.getFromEmail()
+                + " sent "
+                + event.getAmount()
+                + " to "
+                + event.getToEmail();
 
-        String message =
-        event.getFromEmail()
-        + " sent "
-        + event.getAmount()
-        + " to "
-        + event.getToEmail();
-
-        kafkaTemplate.send(
-            "money-transfers",
-            message
-        );
+        kafkaTemplate.send(MONEY_TRANSFERS_TOPIC, message);
     }
 }

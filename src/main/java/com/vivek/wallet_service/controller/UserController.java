@@ -15,6 +15,7 @@ import com.vivek.wallet_service.repository.UserRepository;
 public class UserController {
 
     private final UserRepository userRepository;
+
     public UserController(UserRepository userRepository) {
         this.userRepository = userRepository;
     }
@@ -28,6 +29,4 @@ public class UserController {
     public void deleteUser(@PathVariable Long id) {
         userRepository.deleteById(id);
     }
-
-
 }
