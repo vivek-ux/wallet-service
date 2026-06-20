@@ -8,6 +8,11 @@ target/
 .env
 application-prod.properties
 .DS_Store
+ai-risk-service/.env
+ai-risk-service/.venv/
+ai-risk-service/.chroma/
+ai-risk-service/__pycache__/
+ai-risk-service/app/__pycache__/
 
 ### STS ###
 .apt_generated
