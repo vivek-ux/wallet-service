@@ -18,4 +18,12 @@ public interface WalletTransactionRepository extends JpaRepository<WalletTransac
             order by walletTransaction.createdAt desc
             """)
     List<WalletTransaction> findTransactionHistory(User user);
+
+    @Query("""
+            select count(walletTransaction)
+            from WalletTransaction walletTransaction
+            where walletTransaction.fromAccount.user = :user
+               or walletTransaction.toAccount.user = :user
+            """)
+    long countTransactionHistory(User user);
 }
