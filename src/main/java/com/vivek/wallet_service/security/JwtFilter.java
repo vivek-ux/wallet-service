@@ -1,7 +1,7 @@
 package com.vivek.wallet_service.security;
 
 import java.io.IOException;
-import java.util.Collections;
+import java.util.List;
 
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -41,9 +41,7 @@ public class JwtFilter extends OncePerRequestFilter {
         String token = authHeader.substring(7);
 
         try {
-            boolean valid = jwtService.isTokenValid(token);
-
-            if (!valid) {
+            if (!jwtService.isTokenValid(token)) {
                 response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
                 response.getWriter().write("Invalid token");
                 return;
@@ -55,14 +53,11 @@ public class JwtFilter extends OncePerRequestFilter {
                     new UsernamePasswordAuthenticationToken(
                             email,
                             null,
-                            Collections.emptyList()
+                            List.of()
                     );
 
-            SecurityContextHolder
-                    .getContext()
-                    .setAuthentication(authToken);
-
-        } catch (Exception e) {
+            SecurityContextHolder.getContext().setAuthentication(authToken);
+        } catch (Exception exception) {
             response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
             response.getWriter().write("Invalid JWT token");
             return;

@@ -21,6 +21,7 @@ public class RiskAssessmentService {
     private static final BigDecimal MEDIUM_AMOUNT_THRESHOLD = new BigDecimal("500.00");
     private static final BigDecimal HIGH_BALANCE_RATIO = new BigDecimal("0.80");
     private static final BigDecimal MEDIUM_BALANCE_RATIO = new BigDecimal("0.50");
+    private static final BigDecimal LOW_REMAINING_BALANCE = new BigDecimal("100.00");
     private static final int MANY_RECENT_TRANSFERS_THRESHOLD = 5;
 
     private final UserRepository userRepository;
@@ -132,7 +133,7 @@ public class RiskAssessmentService {
             return 35;
         }
 
-        if (remainingBalance.compareTo(new BigDecimal("100.00")) < 0) {
+        if (remainingBalance.compareTo(LOW_REMAINING_BALANCE) < 0) {
             reasons.add("Transfer leaves the sender with a low remaining balance.");
             return 10;
         }

@@ -33,6 +33,7 @@ public class SecurityConfig {
                             "/styles.css",
                             "/app.js",
                             "/favicon.ico",
+                            "/health",
                             "/auth/login",
                             "/auth/register"
                     )

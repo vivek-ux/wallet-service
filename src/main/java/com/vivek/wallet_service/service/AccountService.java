@@ -3,9 +3,6 @@ package com.vivek.wallet_service.service;
 import java.math.BigDecimal;
 import java.time.Duration;
 import java.util.List;
-import java.util.Map;
-import java.util.function.Function;
-import java.util.stream.Collectors;
 
 import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -15,10 +12,12 @@ import org.springframework.transaction.annotation.Transactional;
 import com.vivek.wallet_service.dto.TransactionResponse;
 import com.vivek.wallet_service.dto.TransferEvent;
 import com.vivek.wallet_service.entity.Account;
+import com.vivek.wallet_service.entity.OutboxEvent;
 import com.vivek.wallet_service.entity.TransactionStatus;
 import com.vivek.wallet_service.entity.User;
 import com.vivek.wallet_service.entity.WalletTransaction;
 import com.vivek.wallet_service.repository.AccountRepository;
+import com.vivek.wallet_service.repository.OutboxEventRepository;
 import com.vivek.wallet_service.repository.UserRepository;
 import com.vivek.wallet_service.repository.WalletTransactionRepository;
 
@@ -28,25 +27,26 @@ public class AccountService {
     private static final Duration IDEMPOTENCY_TTL = Duration.ofMinutes(10);
     private static final String IDEMPOTENCY_PROCESSING_VALUE = "processing";
     private static final String IDEMPOTENCY_COMPLETED_VALUE = "completed";
+    private static final String MONEY_TRANSFERS_TOPIC = "money-transfers";
 
     private final AccountRepository accountRepository;
     private final UserRepository userRepository;
     private final WalletTransactionRepository walletTransactionRepository;
+    private final OutboxEventRepository outboxEventRepository;
     private final StringRedisTemplate redisTemplate;
-    private final KafkaProducerService kafkaProducerService;
 
     public AccountService(
             AccountRepository accountRepository,
             UserRepository userRepository,
             WalletTransactionRepository walletTransactionRepository,
-            StringRedisTemplate redisTemplate,
-            KafkaProducerService kafkaProducerService
+            OutboxEventRepository outboxEventRepository,
+            StringRedisTemplate redisTemplate
     ) {
         this.accountRepository = accountRepository;
         this.userRepository = userRepository;
         this.walletTransactionRepository = walletTransactionRepository;
+        this.outboxEventRepository = outboxEventRepository;
         this.redisTemplate = redisTemplate;
-        this.kafkaProducerService = kafkaProducerService;
     }
 
     public void createAccount(BigDecimal initialBalance) {
@@ -84,7 +84,7 @@ public class AccountService {
             moveMoney(lockedAccounts.fromAccount(), lockedAccounts.toAccount(), amount);
             saveLedgerEntry(lockedAccounts.fromAccount(), lockedAccounts.toAccount(), amount, idempotencyKey);
 
-            sendTransferEvent(fromUser.getEmail(), toEmail, amount);
+            saveTransferEventForPublishing(fromUser.getEmail(), toEmail, amount);
             markRequestCompleted(idempotencyKey);
         } catch (RuntimeException exception) {
             redisTemplate.delete(idempotencyKey);
@@ -138,24 +138,28 @@ public class AccountService {
     private LockedAccounts lockAccounts(Account fromAccount, Account toAccount) {
         // Lock both account rows in id order so opposite-direction transfers do not deadlock each other.
         List<Long> accountIds = List.of(fromAccount.getId(), toAccount.getId());
-        Map<Long, Account> lockedAccountsById = accountRepository.findAllByIdForUpdate(accountIds)
-                .stream()
-                .collect(Collectors.toMap(Account::getId, Function.identity()));
+        List<Account> lockedAccounts = accountRepository.findAllByIdForUpdate(accountIds);
 
-        return new LockedAccounts(
-                requireLockedAccount(lockedAccountsById, fromAccount.getId(), "Sender account not found"),
-                requireLockedAccount(lockedAccountsById, toAccount.getId(), "Recipient account not found")
+        Account lockedFromAccount = findLockedAccount(
+                lockedAccounts,
+                fromAccount.getId(),
+                "Sender account not found"
         );
+
+        Account lockedToAccount = findLockedAccount(
+                lockedAccounts,
+                toAccount.getId(),
+                "Recipient account not found"
+        );
+
+        return new LockedAccounts(lockedFromAccount, lockedToAccount);
     }
 
-    private Account requireLockedAccount(Map<Long, Account> lockedAccountsById, Long accountId, String errorMessage) {
-        Account account = lockedAccountsById.get(accountId);
-
-        if (account == null) {
-            throw new RuntimeException(errorMessage);
-        }
-
-        return account;
+    private Account findLockedAccount(List<Account> lockedAccounts, Long accountId, String errorMessage) {
+        return lockedAccounts.stream()
+                .filter(account -> account.getId().equals(accountId))
+                .findFirst()
+                .orElseThrow(() -> new RuntimeException(errorMessage));
     }
 
     private void validateDifferentUsers(User fromUser, User toUser) {
@@ -195,12 +199,29 @@ public class AccountService {
         walletTransactionRepository.save(walletTransaction);
     }
 
-    private void sendTransferEvent(String fromEmail, String toEmail, BigDecimal amount) {
+    private void saveTransferEventForPublishing(String fromEmail, String toEmail, BigDecimal amount) {
         TransferEvent event = new TransferEvent();
         event.setFromEmail(fromEmail);
         event.setToEmail(toEmail);
         event.setAmount(amount.toString());
-        kafkaProducerService.sendTransferEvent(event);
+
+        // Saved with the money movement, then published to Kafka by OutboxPublisherService.
+        outboxEventRepository.save(new OutboxEvent(MONEY_TRANSFERS_TOPIC, toJson(event)));
+    }
+
+    private String toJson(TransferEvent event) {
+        return """
+                {"fromEmail":"%s","toEmail":"%s","amount":"%s"}"""
+                .formatted(
+                        escapeJson(event.getFromEmail()),
+                        escapeJson(event.getToEmail()),
+                        escapeJson(event.getAmount())
+                );
+    }
+
+    private String escapeJson(String value) {
+        return value.replace("\\", "\\\\")
+                .replace("\"", "\\\"");
     }
 
     private void markRequestCompleted(String idempotencyKey) {

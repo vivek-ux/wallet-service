@@ -29,9 +29,8 @@ public class RiskAssessmentController {
 
     @PostMapping("/assess-transfer")
     public RiskAssessmentResponse assessTransfer(@RequestBody RiskAssessmentRequest request) {
-        String fromEmail = getCurrentUserEmail();
         return riskAssessmentService.assessTransfer(
-                fromEmail,
+                getCurrentUserEmail(),
                 request.getToEmail(),
                 request.getAmount()
         );
@@ -39,9 +38,8 @@ public class RiskAssessmentController {
 
     @PostMapping("/assess-transfer-ai")
     public AiRiskAssessmentResponse assessTransferWithAi(@RequestBody RiskAssessmentRequest request) {
-        String fromEmail = getCurrentUserEmail();
         RiskAssessmentResponse riskAssessment = riskAssessmentService.assessTransfer(
-                fromEmail,
+                getCurrentUserEmail(),
                 request.getToEmail(),
                 request.getAmount()
         );

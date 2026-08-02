@@ -27,16 +27,10 @@ public class GlobalExceptionHandler {
             return HttpStatus.NOT_FOUND;
         }
 
-        if (message.equals("Duplicate request")) {
-            return HttpStatus.CONFLICT;
-        }
-
-        if (message.equals("Invalid amount")
-                || message.equals("Cannot transfer to self")
-                || message.equals("Insufficient balance")) {
-            return HttpStatus.BAD_REQUEST;
-        }
-
-        return HttpStatus.INTERNAL_SERVER_ERROR;
+        return switch (message) {
+            case "Duplicate request" -> HttpStatus.CONFLICT;
+            case "Invalid amount", "Cannot transfer to self", "Insufficient balance" -> HttpStatus.BAD_REQUEST;
+            default -> HttpStatus.INTERNAL_SERVER_ERROR;
+        };
     }
 }

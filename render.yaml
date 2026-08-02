@@ -1,0 +1,49 @@
+services:
+  - type: web
+    name: vivek-wallet-service
+    runtime: docker
+    plan: free
+    region: singapore
+    dockerfilePath: ./Dockerfile
+    dockerContext: .
+    autoDeployTrigger: commit
+    healthCheckPath: /health
+    envVars:
+      - key: DATABASE_URL
+        fromDatabase:
+          name: vivek-wallet-db
+          property: connectionString
+      - key: DATABASE_USERNAME
+        fromDatabase:
+          name: vivek-wallet-db
+          property: user
+      - key: DATABASE_PASSWORD
+        fromDatabase:
+          name: vivek-wallet-db
+          property: password
+      - key: REDIS_URL
+        fromService:
+          type: keyvalue
+          name: vivek-wallet-redis
+          property: connectionString
+      - key: JWT_SECRET
+        generateValue: true
+      - key: KAFKA_ENABLED
+        value: "false"
+      - key: EMAIL_ENABLED
+        value: "false"
+
+  - type: keyvalue
+    name: vivek-wallet-redis
+    plan: free
+    region: singapore
+    ipAllowList: []
+    maxmemoryPolicy: noeviction
+
+databases:
+  - name: vivek-wallet-db
+    plan: free
+    region: singapore
+    databaseName: wallet
+    user: wallet_user
+    ipAllowList: []

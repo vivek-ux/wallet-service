@@ -26,10 +26,12 @@ import org.springframework.security.core.context.SecurityContextHolder;
 
 import com.vivek.wallet_service.dto.TransactionResponse;
 import com.vivek.wallet_service.entity.Account;
+import com.vivek.wallet_service.entity.OutboxEvent;
 import com.vivek.wallet_service.entity.TransactionStatus;
 import com.vivek.wallet_service.entity.User;
 import com.vivek.wallet_service.entity.WalletTransaction;
 import com.vivek.wallet_service.repository.AccountRepository;
+import com.vivek.wallet_service.repository.OutboxEventRepository;
 import com.vivek.wallet_service.repository.UserRepository;
 import com.vivek.wallet_service.repository.WalletTransactionRepository;
 
@@ -55,7 +57,7 @@ class AccountServiceTest {
     private ValueOperations<String, String> valueOperations;
 
     @Mock
-    private KafkaProducerService kafkaProducerService;
+    private OutboxEventRepository outboxEventRepository;
 
     private AccountService accountService;
 
@@ -65,8 +67,8 @@ class AccountServiceTest {
                 accountRepository,
                 userRepository,
                 walletTransactionRepository,
-                redisTemplate,
-                kafkaProducerService
+                outboxEventRepository,
+                redisTemplate
         );
 
         SecurityContextHolder.getContext()
@@ -108,7 +110,15 @@ class AccountServiceTest {
         assertThat(transaction.getIdempotencyKey()).isEqualTo(IDEMPOTENCY_KEY);
         assertThat(transaction.getStatus()).isEqualTo(TransactionStatus.COMPLETED);
 
-        verify(kafkaProducerService).sendTransferEvent(any());
+        ArgumentCaptor<OutboxEvent> outboxCaptor = ArgumentCaptor.forClass(OutboxEvent.class);
+        verify(outboxEventRepository).save(outboxCaptor.capture());
+        OutboxEvent outboxEvent = outboxCaptor.getValue();
+        assertThat(outboxEvent.getTopic()).isEqualTo("money-transfers");
+        assertThat(outboxEvent.getPayload()).contains(
+                "\"fromEmail\":\"sender@example.com\"",
+                "\"toEmail\":\"recipient@example.com\"",
+                "\"amount\":\"40.00\""
+        );
         verify(valueOperations).set(IDEMPOTENCY_KEY, "completed", IDEMPOTENCY_TTL);
     }
 
@@ -122,7 +132,7 @@ class AccountServiceTest {
         ).hasMessage("Duplicate request");
 
         verify(walletTransactionRepository, never()).save(any());
-        verify(kafkaProducerService, never()).sendTransferEvent(any());
+        verify(outboxEventRepository, never()).save(any());
     }
 
     @Test
@@ -136,7 +146,7 @@ class AccountServiceTest {
 
         verify(redisTemplate).delete(IDEMPOTENCY_KEY);
         verify(walletTransactionRepository, never()).save(any());
-        verify(kafkaProducerService, never()).sendTransferEvent(any());
+        verify(outboxEventRepository, never()).save(any());
     }
 
     @Test
