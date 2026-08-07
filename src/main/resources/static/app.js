@@ -51,8 +51,10 @@ async function request(path, options = {}) {
     };
 
     const token = getToken();
+    const isAuthRequest = path.startsWith("/auth/");
 
-    if (token) {
+    // A stale JWT must not block the public login/register endpoints.
+    if (token && !isAuthRequest) {
         headers.Authorization = `Bearer ${token}`;
     }
 
@@ -68,6 +70,12 @@ async function request(path, options = {}) {
 
     if (!response.ok) {
         const message = typeof body === "string" ? body : body.message;
+
+        if (response.status === 401 && !isAuthRequest) {
+            clearToken();
+            throw new Error("Your session expired. Please log in again.");
+        }
+
         throw new Error(message || "Request failed");
     }
 
