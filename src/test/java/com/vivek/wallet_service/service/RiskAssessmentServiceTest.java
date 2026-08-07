@@ -49,8 +49,8 @@ class RiskAssessmentServiceTest {
         User recipient = user(2L, "recipient@example.com");
         Account senderAccount = account(sender, "1000.00");
 
-        when(userRepository.findByEmail("sender@example.com")).thenReturn(Optional.of(sender));
-        when(userRepository.findByEmail("recipient@example.com")).thenReturn(Optional.of(recipient));
+        when(userRepository.findFirstByEmailOrderByIdAsc("sender@example.com")).thenReturn(Optional.of(sender));
+        when(userRepository.findFirstByEmailOrderByIdAsc("recipient@example.com")).thenReturn(Optional.of(recipient));
         when(accountRepository.findByUser(sender)).thenReturn(Optional.of(senderAccount));
         when(walletTransactionRepository.countTransactionHistory(sender)).thenReturn(1L);
 
@@ -73,8 +73,8 @@ class RiskAssessmentServiceTest {
         User recipient = user(2L, "recipient@example.com");
         Account senderAccount = account(sender, "1200.00");
 
-        when(userRepository.findByEmail("sender@example.com")).thenReturn(Optional.of(sender));
-        when(userRepository.findByEmail("recipient@example.com")).thenReturn(Optional.of(recipient));
+        when(userRepository.findFirstByEmailOrderByIdAsc("sender@example.com")).thenReturn(Optional.of(sender));
+        when(userRepository.findFirstByEmailOrderByIdAsc("recipient@example.com")).thenReturn(Optional.of(recipient));
         when(accountRepository.findByUser(sender)).thenReturn(Optional.of(senderAccount));
         when(walletTransactionRepository.countTransactionHistory(sender)).thenReturn(7L);
 

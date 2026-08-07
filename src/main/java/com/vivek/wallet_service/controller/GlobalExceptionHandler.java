@@ -29,7 +29,8 @@ public class GlobalExceptionHandler {
 
         return switch (message) {
             case "Duplicate request" -> HttpStatus.CONFLICT;
-            case "Invalid amount", "Cannot transfer to self", "Insufficient balance" -> HttpStatus.BAD_REQUEST;
+            case "Invalid amount", "Cannot transfer to self", "Insufficient balance", "Email and password are required" -> HttpStatus.BAD_REQUEST;
+            case "Email already registered" -> HttpStatus.CONFLICT;
             default -> HttpStatus.INTERNAL_SERVER_ERROR;
         };
     }

@@ -88,7 +88,7 @@ public class RiskAssessmentService {
     }
 
     private User getUserByEmail(String email, String errorMessage) {
-        return userRepository.findByEmail(email)
+        return userRepository.findFirstByEmailOrderByIdAsc(email.trim().toLowerCase())
                 .orElseThrow(() -> new RuntimeException(errorMessage));
     }
 

@@ -227,13 +227,19 @@ td {
 }
 
 .message {
-    min-height: 22px;
-    margin: 16px 0 0;
-    color: var(--surface-strong);
+    min-height: 52px;
+    margin: 0 0 16px;
+    border: 1px solid #a7f3d0;
+    border-radius: 8px;
+    padding: 14px 18px;
+    background: #ecfdf5;
+    color: var(--accent-dark);
     font-weight: 700;
 }
 
 .message.error {
+    border-color: #fecaca;
+    background: #fef2f2;
     color: var(--danger);
 }
 

@@ -32,7 +32,7 @@ function clearToken() {
 
 function updateSessionState() {
     const token = getToken();
-    elements.sessionState.textContent = token ? `Token: ${token}` : "Signed out";
+    elements.sessionState.textContent = token ? "● Authenticated" : "Signed out";
 }
 
 function showMessage(text, isError = false) {
@@ -127,46 +127,65 @@ async function refreshDashboard() {
 
 elements.registerForm.addEventListener("submit", async event => {
     event.preventDefault();
+    const form = event.currentTarget;
+    const button = form.querySelector("button");
+    button.disabled = true;
     showMessage("Creating user...");
 
     try {
-        const data = formData(event.currentTarget);
+        const data = formData(form);
         const message = await request("/auth/register", {
             method: "POST",
             body: JSON.stringify(data)
         });
-        showMessage(message);
-        event.currentTarget.reset();
+        showMessage(`${message}. Now log in with the same credentials.`);
+        form.reset();
     } catch (error) {
         showMessage(error.message, true);
+    } finally {
+        button.disabled = false;
     }
 });
 
 elements.loginForm.addEventListener("submit", async event => {
     event.preventDefault();
+    const form = event.currentTarget;
+    const button = form.querySelector("button");
+    button.disabled = true;
     showMessage("Logging in...");
 
     try {
-        const data = formData(event.currentTarget);
+        const data = formData(form);
         const token = await request("/auth/login", {
             method: "POST",
             body: JSON.stringify(data)
         });
         setToken(token);
-        showMessage("Logged in");
-        event.currentTarget.reset();
-        await refreshDashboard();
+        form.reset();
+        try {
+            await refreshDashboard();
+            showMessage("Logged in");
+        } catch (dashboardError) {
+            if (dashboardError.message.toLowerCase().includes("account not found")) {
+                showMessage("Logged in. Create your wallet account below to continue.");
+            } else {
+                showMessage(`Logged in, but dashboard refresh failed: ${dashboardError.message}`, true);
+            }
+        }
     } catch (error) {
         showMessage(error.message, true);
+    } finally {
+        button.disabled = false;
     }
 });
 
 elements.accountForm.addEventListener("submit", async event => {
     event.preventDefault();
+    const form = event.currentTarget;
     showMessage("Creating account...");
 
     try {
-        const data = formData(event.currentTarget);
+        const data = formData(form);
         const message = await request("/accounts/create", {
             method: "POST",
             body: JSON.stringify({
@@ -174,7 +193,7 @@ elements.accountForm.addEventListener("submit", async event => {
             })
         });
         showMessage(message);
-        event.currentTarget.reset();
+        form.reset();
         await refreshDashboard();
     } catch (error) {
         showMessage(error.message, true);
@@ -183,10 +202,11 @@ elements.accountForm.addEventListener("submit", async event => {
 
 elements.transferForm.addEventListener("submit", async event => {
     event.preventDefault();
+    const form = event.currentTarget;
     showMessage("Sending transfer...");
 
     try {
-        const data = formData(event.currentTarget);
+        const data = formData(form);
         const message = await request("/accounts/transfer", {
             method: "POST",
             headers: {
@@ -198,7 +218,7 @@ elements.transferForm.addEventListener("submit", async event => {
             })
         });
         showMessage(message);
-        event.currentTarget.reset();
+        form.reset();
         await refreshDashboard();
     } catch (error) {
         showMessage(error.message, true);

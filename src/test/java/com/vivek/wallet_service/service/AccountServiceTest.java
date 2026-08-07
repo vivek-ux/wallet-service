@@ -89,8 +89,8 @@ class AccountServiceTest {
 
         when(redisTemplate.opsForValue()).thenReturn(valueOperations);
         when(valueOperations.setIfAbsent(IDEMPOTENCY_KEY, "processing", IDEMPOTENCY_TTL)).thenReturn(true);
-        when(userRepository.findByEmail("sender@example.com")).thenReturn(Optional.of(sender));
-        when(userRepository.findByEmail("recipient@example.com")).thenReturn(Optional.of(recipient));
+        when(userRepository.findFirstByEmailOrderByIdAsc("sender@example.com")).thenReturn(Optional.of(sender));
+        when(userRepository.findFirstByEmailOrderByIdAsc("recipient@example.com")).thenReturn(Optional.of(recipient));
         when(accountRepository.findByUser(sender)).thenReturn(Optional.of(senderAccount));
         when(accountRepository.findByUser(recipient)).thenReturn(Optional.of(recipientAccount));
         when(accountRepository.findAllByIdForUpdate(List.of(11L, 22L)))
@@ -164,7 +164,7 @@ class AccountServiceTest {
         );
         walletTransaction.setId(101L);
 
-        when(userRepository.findByEmail("sender@example.com")).thenReturn(Optional.of(sender));
+        when(userRepository.findFirstByEmailOrderByIdAsc("sender@example.com")).thenReturn(Optional.of(sender));
         when(walletTransactionRepository.findTransactionHistory(sender)).thenReturn(List.of(walletTransaction));
 
         List<TransactionResponse> history = accountService.getMyTransactions();

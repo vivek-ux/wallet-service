@@ -19,12 +19,17 @@ public class AuthService {
     }
 
     public void register(User userDetails) {
+        normalizeAndValidate(userDetails);
+        if (userRepository.existsByEmail(userDetails.getEmail())) {
+            throw new RuntimeException("Email already registered");
+        }
         userDetails.setPassword(passwordEncoder.encode(userDetails.getPassword()));
         userRepository.save(userDetails);
     }
 
     public String login(User userDetails) {
-        User user = userRepository.findByEmail(userDetails.getEmail())
+        normalizeAndValidate(userDetails);
+        User user = userRepository.findFirstByEmailOrderByIdAsc(userDetails.getEmail())
                 .orElseThrow(() -> new RuntimeException("User not found"));
 
         if (!passwordEncoder.matches(userDetails.getPassword(), user.getPassword())) {
@@ -32,5 +37,13 @@ public class AuthService {
         }
 
         return jwtService.generateToken(user.getEmail());
+    }
+
+    private void normalizeAndValidate(User userDetails) {
+        if (userDetails.getEmail() == null || userDetails.getEmail().isBlank()
+                || userDetails.getPassword() == null || userDetails.getPassword().isBlank()) {
+            throw new RuntimeException("Email and password are required");
+        }
+        userDetails.setEmail(userDetails.getEmail().trim().toLowerCase());
     }
 }

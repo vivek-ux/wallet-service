@@ -8,5 +8,7 @@ import com.vivek.wallet_service.entity.User;
 
 public interface UserRepository extends JpaRepository<User, Long> {
 
-    Optional<User> findByEmail(String email);
+    Optional<User> findFirstByEmailOrderByIdAsc(String email);
+
+    boolean existsByEmail(String email);
 }
