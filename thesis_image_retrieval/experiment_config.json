@@ -1,0 +1,13 @@
+{
+  "seed": 20260927,
+  "dataset": "osunlp/MagicBrush",
+  "max_sessions": 80,
+  "max_queries_per_split": 300,
+  "gallery_distractors": 200,
+  "top_k": 50,
+  "patch_grid": 5,
+  "patch_top_m": 3,
+  "test_fraction": 0.2,
+  "val_fraction": 0.1,
+  "persistent_root": "/content/drive/MyDrive/thesis_image_retrieval"
+}

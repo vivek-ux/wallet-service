@@ -1,0 +1,31 @@
+{
+  "status": "measured",
+  "scope": "synthetic visual-corruption stress test, not AI edits",
+  "source_run_rows": 500,
+  "source_run_test_queries": 51,
+  "gallery_size": 257,
+  "edit_types": [
+    "center_crop_50",
+    "center_crop_70",
+    "center_occlusion_35",
+    "gaussian_blur_r3",
+    "jpeg_quality_15"
+  ],
+  "query_count_per_edit_type": 51,
+  "methods": [
+    "fusion_multistage",
+    "fusion_single_edit",
+    "sscd_fixed_patch",
+    "sscd_global"
+  ],
+  "checkpoint_sha256": "9f26bd4c848cc19b73d2ae92eea6e04886f61a7b764ceb7a13aeee62e6a6db56",
+  "device": "cpu",
+  "transformations": {
+    "center_crop_70": "center crop 70% of width and height; resize to original preview dimensions",
+    "center_crop_50": "center crop 50% of width and height; resize to original preview dimensions",
+    "gaussian_blur_r3": "Gaussian blur radius 3",
+    "jpeg_quality_15": "JPEG re-encode at quality 15",
+    "center_occlusion_35": "cover central square 35% of shorter image side with gray"
+  },
+  "limitation": "Queries are synthetic corruptions applied to resized JPEG source previews; results do not measure AI editing performance."
+}

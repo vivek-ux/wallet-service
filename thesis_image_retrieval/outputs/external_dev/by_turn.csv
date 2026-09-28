@@ -1,0 +1,13 @@
+method,turn,queries,gallery_size,Recall@1,Recall@5,Recall@10
+fusion_multistage,1,62,413,1.0,1.0,1.0
+fusion_multistage,2,44,413,1.0,1.0,1.0
+fusion_multistage,3,50,413,1.0,1.0,1.0
+fusion_single_edit,1,62,413,1.0,1.0,1.0
+fusion_single_edit,2,44,413,1.0,1.0,1.0
+fusion_single_edit,3,50,413,1.0,1.0,1.0
+sscd_fixed_patch,1,62,413,1.0,1.0,1.0
+sscd_fixed_patch,2,44,413,1.0,1.0,1.0
+sscd_fixed_patch,3,50,413,0.98,1.0,1.0
+sscd_global,1,62,413,1.0,1.0,1.0
+sscd_global,2,44,413,1.0,1.0,1.0
+sscd_global,3,50,413,0.98,1.0,1.0

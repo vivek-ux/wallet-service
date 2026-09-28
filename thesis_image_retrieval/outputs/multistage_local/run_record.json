@@ -1,0 +1,40 @@
+{
+  "status": "measured",
+  "stage": "complete",
+  "seed": 20260927,
+  "device": "cpu",
+  "dataset": "osunlp/MagicBrush",
+  "requested_rows": 500,
+  "output_root": "thesis_image_retrieval/outputs/multistage_local",
+  "dataset_viewer_api": "https://datasets-server.huggingface.co",
+  "config": "default",
+  "split": "train",
+  "dataset_rows_total": 1730,
+  "bounded_rows": 500,
+  "split_counts": {
+    "test": 106,
+    "train": 320,
+    "val": 74
+  },
+  "complete_sessions": 257,
+  "dataset_snapshot": "Dataset Viewer currently serves the selected split; row indices are recorded in dataset_manifest.csv",
+  "checkpoint_url": "https://dl.fbaipublicfiles.com/sscd-copy-detection/sscd_disc_mixup.torchscript.pt",
+  "checkpoint_sha256": "9f26bd4c848cc19b73d2ae92eea6e04886f61a7b764ceb7a13aeee62e6a6db56",
+  "preprocess": "resize 288x288, ImageNet normalization",
+  "feature_seconds": 158.30981100001372,
+  "training_seconds": {
+    "single_edit": 3.8455886660085525,
+    "multistage": 4.766414541983977
+  },
+  "trainable_parameters": 65,
+  "training_comparison": "same fusion MLP; single-edit training uses first edit per training session; multi-stage training uses all observed edits; validation and test use only each session final edit",
+  "gallery_protocol": "train queries search train originals; validation searches train+validation originals; test searches train+validation+test originals; no test originals enter model fitting",
+  "protocol": "first original; exact pixel hash grouping; complete sessions; test gallery includes all original distractors; top20 reranking; final-edit-only testing",
+  "limitations": [
+    "Bounded prefix sample; last complete session only",
+    "No external dataset or AI-mask branch evaluated",
+    "Limited number of test source queries",
+    "No novelty claim"
+  ],
+  "command": "python run_local_multistage.py --root thesis_image_retrieval/outputs/multistage_local --rows 500 --checkpoint <cached-sscd-checkpoint>"
+}

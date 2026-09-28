@@ -1,0 +1,25 @@
+# Local Python/runtime artifacts
+__pycache__/
+*.py[cod]
+.codex/
+
+# Do not commit temporary screenshots, downloaded datasets, image previews,
+# embedding caches, or the large pretrained SSCD checkpoint.
+colab_drive_permission.png
+outputs/**/cache/
+outputs/**/preview_images/
+outputs/**/sscd*.pt
+outputs/local_pilot/
+outputs/pilot_100_sessions/
+outputs/multistage_local_300/
+outputs/rendered/
+outputs/**/per_query_rankings.csv
+!outputs/external_dev/per_query_rankings.csv
+
+# Keep the tiny thesis fusion weights; ignore other generated checkpoints.
+outputs/**/*.pt
+!outputs/multistage_local/fusion_single_edit.pt
+!outputs/multistage_local/fusion_multistage.pt
+
+# Old notebook is explicitly marked unverified; retain the current Colab notebook only.
+run_thesis_experiments_legacy_UNVERIFIED.ipynb

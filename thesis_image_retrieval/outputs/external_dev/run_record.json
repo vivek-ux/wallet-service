@@ -1,0 +1,25 @@
+{
+  "status": "measured",
+  "dataset": "osunlp/MagicBrush",
+  "source_split": "train",
+  "evaluation_split": "dev",
+  "requested_rows": 300,
+  "rows_used": 300,
+  "dev_sessions_evaluated": 156,
+  "train_gallery_sources": 257,
+  "dev_gallery_sources": 156,
+  "gallery_size": 413,
+  "excluded_exact_hash_overlap_with_train": 0,
+  "queries": 156,
+  "model_training": "trained on MagicBrush train only; loaded existing weights unchanged; no dev fitting or threshold tuning",
+  "test_protocol": "final edited image per complete dev session; gallery is train originals plus all sampled dev originals; exact source-image hash overlap removed",
+  "seed": 20260927,
+  "device": "cpu",
+  "checkpoint_sha256": "9f26bd4c848cc19b73d2ae92eea6e04886f61a7b764ceb7a13aeee62e6a6db56",
+  "limitations": [
+    "MagicBrush dev is a development split, not the hidden official test split",
+    "bounded 300-row prefix",
+    "no semantic hard-negative mining",
+    "dev set must not be reused repeatedly for model selection"
+  ]
+}

@@ -1,0 +1,5 @@
+method,queries,gallery_size,Recall@1,Recall@5,Recall@10
+fusion_multistage,156,413,1.0,1.0,1.0
+fusion_single_edit,156,413,1.0,1.0,1.0
+sscd_fixed_patch,156,413,0.9935897435897436,1.0,1.0
+sscd_global,156,413,0.9935897435897436,1.0,1.0

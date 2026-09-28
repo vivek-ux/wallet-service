@@ -1,0 +1,9 @@
+device mps
+/Users/viveknegi/Downloads/wallet-service/.thesis-venv/lib/python3.12/site-packages/torch/jit/_serialization.py:176: FutureWarning: `torch.jit.load` is deprecated. Please switch to `torch.export`.
+  warnings.warn(
+Warning: You are sending unauthenticated requests to the HF Hub. Please set a HF_TOKEN to enable higher rate limits and faster downloads.
+sessions 12 train turns 11 test turns 7 gallery 12
+global {'queries': 7, 'gallery_size': 12, 'Recall@1': 1.0, 'Recall@5': 1.0, 'Recall@10': 1.0}
+fixed {'queries': 7, 'gallery_size': 12, 'Recall@1': 1.0, 'Recall@5': 1.0, 'Recall@10': 1.0}
+fusion {'queries': 7, 'gallery_size': 12, 'Recall@1': 1.0, 'Recall@5': 1.0, 'Recall@10': 1.0}
+saved /Users/viveknegi/Downloads/wallet-service/thesis_image_retrieval/outputs/local_pilot
