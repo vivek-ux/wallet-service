@@ -51,7 +51,7 @@ async function request(path, options = {}) {
     };
 
     const token = getToken();
-    const isAuthRequest = path.startsWith("/auth/");
+    const isAuthRequest = path.includes("/auth/");
 
     // A stale JWT must not block the public login/register endpoints.
     if (token && !isAuthRequest) {
