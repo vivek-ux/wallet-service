@@ -183,11 +183,19 @@ if (elements.loginForm) {
                 body: JSON.stringify(data)
             });
             
-            // Handle both plain string tokens and JSON response objects like { token: "..." }
-            const token = typeof responseData === "object" ? responseData.token : responseData;
-            
+            // Extract JWT string whether returned directly or inside JSON object
+            let token = responseData;
+            if (typeof responseData === "object" && responseData !== null) {
+                token = responseData.token || responseData.accessToken || responseData.jwt;
+            }
+
+            if (!token || typeof token !== "string") {
+                throw new Error("Invalid token format received from server");
+            }
+
             setToken(token);
             form.reset();
+            
             try {
                 await refreshDashboard();
                 showMessage("Logged in");
