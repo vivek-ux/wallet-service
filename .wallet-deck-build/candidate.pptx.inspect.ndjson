@@ -1,0 +1,234 @@
+{"kind":"deck","id":"pr/9zsgdx","name":"Deck"}
+{"kind":"layout","layoutId":"9e0b7183-6976-410e-867a-cc72b7de4786","name":"Master","type":"master"}
+{"kind":"layout","layoutId":"20c7002d-7dec-4897-9321-74244df9141f","name":"Title Slide","type":"title"}
+{"kind":"slide","id":"sl/vt7dqa","slide":1,"title":"DISTRIBUTED FINTECH","textShapes":7}
+{"kind":"shape","id":"sh/7u5gni94","slide":1,"bbox":[0,0,17,720]}
+{"kind":"textbox","id":"sh/sfyxgnqp","slide":1,"text":"DISTRIBUTED FINTECH","textPreview":"DISTRIBUTED FINTECH","textChars":19,"textLines":1,"bbox":[72,94,650,26]}
+{"kind":"textbox","id":"sh/tg7ypsra","slide":1,"text":"Wallet Service","textPreview":"Wallet Service","textChars":14,"textLines":1,"bbox":[72,146,820,84]}
+{"kind":"textbox","id":"sh/ipwfad8n","slide":1,"text":"Safe money movement across concurrent requests and service failures","textPreview":"Safe money movement across concurrent requests and service failures","textChars":67,"textLines":1,"bbox":[76,253,760,72]}
+{"kind":"shape","id":"sh/jq5gji9s","slide":1,"bbox":[76,361,709,1]}
+{"kind":"textbox","id":"sh/krexcnqd","slide":1,"text":"Java 17  ·  Spring Boot  ·  PostgreSQL  ·  Redis  ·  Kafka","textPreview":"Java 17  ·  Spring Boot  ·  PostgreSQL  ·  Redis  ·  Kafka","textChars":58,"textLines":1,"bbox":[76,393,790,38]}
+{"kind":"textbox","id":"sh/5snylsry","slide":1,"text":"Docker  ·  Spring Security  ·  JWT","textPreview":"Docker  ·  Spring Security  ·  JWT","textChars":34,"textLines":1,"bbox":[76,437,660,32]}
+{"kind":"textbox","id":"sh/alcf6d8b","slide":1,"text":"Presenter: [Your Name]   |   Mini-Project Presentation","textPreview":"Presenter: [Your Name]   |   Mini-Project Presentation","textChars":54,"textLines":1,"bbox":[76,574,760,34]}
+{"kind":"textbox","id":"sh/vmlgfy9w","slide":1,"text":"01","textPreview":"01","textChars":2,"textLines":1,"bbox":[1178,674,42,20]}
+{"kind":"notes","id":"nt/vt7dqa","slide":1,"text":"Introduce the project as a study in preserving financial correctness when requests overlap, clients retry, and components fail. The listed stack is the project context. Replace [Your Name] before presenting."}
+{"kind":"slide","id":"sl/oww4uq","slide":2,"title":"PROBLEM STATEMENT","textShapes":13}
+{"kind":"shape","id":"sh/zqxgjeds","slide":2,"bbox":[0,0,14,720]}
+{"kind":"textbox","id":"sh/0r6xcjud","slide":2,"text":"PROBLEM STATEMENT","textPreview":"PROBLEM STATEMENT","textChars":17,"textLines":1,"bbox":[62,34,700,24]}
+{"kind":"textbox","id":"sh/1sfylovy","slide":2,"name":"slide-title","text":"Financial transfers face competing failure modes","textPreview":"Financial transfers face competing failure modes","textChars":48,"textLines":1,"bbox":[62,66,1156,68]}
+{"kind":"shape","id":"sh/q14f69cb","slide":2,"bbox":[62,145,1156,1]}
+{"kind":"textbox","id":"sh/r2xgfedg","slide":2,"text":"02","textPreview":"02","textChars":2,"textLines":1,"bbox":[1178,674,42,20]}
+{"kind":"shape","id":"sh/c36x8ju1","slide":2,"bbox":[76,186,8,76]}
+{"kind":"textbox","id":"sh/d4fyhovm","slide":2,"text":"Concurrent writes","textPreview":"Concurrent writes","textChars":17,"textLines":1,"bbox":[102,188,260,31]}
+{"kind":"textbox","id":"sh/2x4f2pcz","slide":2,"text":"Two requests read the same balance and both attempt a debit.","textPreview":"Two requests read the same balance and both attempt a debit.","textChars":60,"textLines":1,"bbox":[373,187,770,62]}
+{"kind":"shape","id":"sh/3ydwbudk","slide":2,"bbox":[76,292,8,76]}
+{"kind":"textbox","id":"sh/fy50jyl8","slide":2,"text":"Client retries","textPreview":"Client retries","textChars":14,"textLines":1,"bbox":[102,294,260,31]}
+{"kind":"textbox","id":"sh/exwzatkn","slide":2,"text":"A timeout hides the outcome, so the client may submit the same intent again.","textPreview":"A timeout hides the outcome, so the client may submit the same intent again.","textChars":76,"textLines":1,"bbox":[373,293,770,62]}
+{"kind":"shape","id":"sh/10nilo3y","slide":2,"bbox":[76,398,8,76]}
+{"kind":"textbox","id":"sh/0zehc32d","slide":2,"text":"Split commits","textPreview":"Split commits","textChars":13,"textLines":1,"bbox":[102,400,260,31]}
+{"kind":"textbox","id":"sh/nm50nyl4","slide":2,"text":"The database and Kafka cannot commit together in a simple local transaction.","textPreview":"The database and Kafka cannot commit together in a simple local transaction.","textChars":76,"textLines":1,"bbox":[373,399,770,62]}
+{"kind":"shape","id":"sh/21wjetkj","slide":2,"bbox":[76,504,8,76]}
+{"kind":"textbox","id":"sh/po7ip83a","slide":2,"text":"Partial failure","textPreview":"Partial failure","textChars":15,"textLines":1,"bbox":[102,506,260,31]}
+{"kind":"textbox","id":"sh/one1g32p","slide":2,"text":"A service may stop after a database commit but before replying or publishing.","textPreview":"A service may stop after a database commit but before replying or publishing.","textChars":77,"textLines":1,"bbox":[373,505,770,62]}
+{"kind":"textbox","id":"sh/jql0bel0","slide":2,"text":"Invariant to protect","textPreview":"Invariant to protect","textChars":20,"textLines":1,"bbox":[76,616,225,28]}
+{"kind":"textbox","id":"sh/i5cz294f","slide":2,"text":"A transfer changes both account balances as one durable operation.","textPreview":"A transfer changes both account balances as one durable operation.","textChars":66,"textLines":1,"bbox":[302,612,840,34]}
+{"kind":"notes","id":"nt/oww4uq","slide":2,"text":"Explain that a timeout is ambiguous: the request may have failed before processing, or the transfer may have committed and only the response was lost. This makes safe retries and durable financial invariants central requirements."}
+{"kind":"slide","id":"sl/c7d66b","slide":3,"title":"ARCHITECTURE","textShapes":14}
+{"kind":"shape","id":"sh/e9w361kj","slide":3,"bbox":[0,0,14,720]}
+{"kind":"textbox","id":"sh/1cn2hwja","slide":3,"text":"ARCHITECTURE","textPreview":"ARCHITECTURE","textChars":12,"textLines":1,"bbox":[62,34,700,24]}
+{"kind":"textbox","id":"sh/gbel8r2p","slide":3,"name":"slide-title","text":"Service architecture and transfer data flow","textPreview":"Service architecture and transfer data flow","textChars":43,"textLines":1,"bbox":[62,66,1156,68]}
+{"kind":"shape","id":"sh/r6lkbm18","slide":3,"bbox":[62,145,1156,1]}
+{"kind":"textbox","id":"sh/65c32hkn","slide":3,"text":"03","textPreview":"03","textChars":2,"textLines":1,"bbox":[1178,674,42,20]}
+{"kind":"textbox","id":"sh/t8n2dwjy","slide":3,"text":"Client\nJWT + idempotency key","textPreview":"Client | JWT + idempotency key","textChars":28,"textLines":2,"bbox":[68,260,188,104]}
+{"kind":"textbox","id":"sh/s7ul4r2t","slide":3,"text":"Gateway","textPreview":"Gateway","textChars":7,"textLines":1,"bbox":[306,260,145,104]}
+{"kind":"textbox","id":"sh/jilk721w","slide":3,"text":"Spring Boot\nWallet API","textPreview":"Spring Boot | Wallet API","textChars":22,"textLines":2,"bbox":[503,245,208,132]}
+{"kind":"textbox","id":"sh/ihcjyhkb","slide":3,"text":"PostgreSQL\naccounts · transfers\noutbox","textPreview":"PostgreSQL | accounts · transfers | outbox","textChars":38,"textLines":3,"bbox":[795,190,225,126]}
+{"kind":"textbox","id":"sh/onuh8rqp","slide":3,"text":"Redis\nretry coordination\nTTL keys","textPreview":"Redis | retry coordination | TTL keys","textChars":33,"textLines":3,"bbox":[795,353,225,111]}
+{"kind":"textbox","id":"sh/po3i1wra","slide":3,"text":"Kafka","textPreview":"Kafka","textChars":5,"textLines":1,"bbox":[1082,225,130,76]}
+{"kind":"textbox","id":"sh/2lcz6h8z","slide":3,"text":"Consumers\naudit · notification","textPreview":"Consumers | audit · notification","textChars":30,"textLines":2,"bbox":[1055,391,184,88]}
+{"kind":"shape","id":"sh/nml0zm9k","slide":3,"bbox":[258,300,40,22]}
+{"kind":"shape","id":"sh/0jah47qt","slide":3,"bbox":[451,300,42,22]}
+{"kind":"shape","id":"sh/1k3ixcre","slide":3,"bbox":[711,259,65,22]}
+{"kind":"shape","id":"sh/exsz2x8n","slide":3,"bbox":[711,340,65,22]}
+{"kind":"shape","id":"sh/fy10v298","slide":3,"bbox":[1020,240,53,22]}
+{"kind":"shape","id":"sh/kfe1gbqx","slide":3,"bbox":[1140,310,22,67]}
+{"kind":"textbox","id":"sh/lgni9gri","slide":3,"text":"Commit transfer + outbox atomically","textPreview":"Commit transfer + outbox atomically","textChars":35,"textLines":1,"bbox":[746,160,315,25]}
+{"kind":"textbox","id":"sh/tcjitwjm","slide":3,"text":"Redis supports request coordination; PostgreSQL owns balances","textPreview":"Redis supports request coordination; PostgreSQL owns balances","textChars":61,"textLines":1,"bbox":[712,485,390,28]}
+{"kind":"textbox","id":"sh/8bahkbi1","slide":3,"text":"Synchronous financial write","textPreview":"Synchronous financial write","textChars":27,"textLines":1,"bbox":[68,556,360,27]}
+{"kind":"textbox","id":"sh/7a10r61w","slide":3,"text":"Asynchronous event delivery","textPreview":"Asynchronous event delivery","textChars":27,"textLines":1,"bbox":[796,556,360,27]}
+{"kind":"notes","id":"nt/c7d66b","slide":3,"text":"Walk left to right. The API authenticates the user, coordinates duplicate requests, and performs the financial write in PostgreSQL. The same database transaction records an outbox event. A separate publisher delivers that committed event to Kafka for downstream consumers."}
+{"kind":"slide","id":"sl/7nm3ss","slide":4,"title":"FINANCIAL CORRECTNESS","textShapes":18}
+{"kind":"shape","id":"sh/b6l8vyxs","slide":4,"bbox":[0,0,14,720]}
+{"kind":"textbox","id":"sh/c7up43ed","slide":4,"text":"FINANCIAL CORRECTNESS","textPreview":"FINANCIAL CORRECTNESS","textChars":21,"textLines":1,"bbox":[62,34,700,24]}
+{"kind":"textbox","id":"sh/x83qx8fy","slide":4,"name":"slide-title","text":"Concurrency control: lock accounts in a stable order","textPreview":"Concurrency control: lock accounts in a stable order","textChars":52,"textLines":1,"bbox":[62,66,1156,68]}
+{"kind":"shape","id":"sh/21s7ytgb","slide":4,"bbox":[62,145,1156,1]}
+{"kind":"textbox","id":"sh/n21oryxw","slide":4,"text":"04","textPreview":"04","textChars":2,"textLines":1,"bbox":[1178,674,42,20]}
+{"kind":"textbox","id":"sh/o3ap0jeh","slide":4,"text":"Opposing transfers","textPreview":"Opposing transfers","textChars":18,"textLines":1,"bbox":[76,177,320,30]}
+{"kind":"textbox","id":"sh/p4j6tof2","slide":4,"text":"A → B","textPreview":"A → B","textChars":5,"textLines":1,"bbox":[83,222,160,62]}
+{"kind":"textbox","id":"sh/mxc7adwf","slide":4,"text":"B → A","textPreview":"B → A","textChars":5,"textLines":1,"bbox":[83,319,160,62]}
+{"kind":"textbox","id":"sh/7y583ix0","slide":4,"text":"Both acquire locks by sorted account ID","textPreview":"Both acquire locks by sorted account ID","textChars":39,"textLines":1,"bbox":[324,180,560,28]}
+{"kind":"textbox","id":"sh/zm1sbe9c","slide":4,"text":"min(A, B)","textPreview":"min(A, B)","textChars":9,"textLines":1,"bbox":[350,239,190,70]}
+{"kind":"shape","id":"sh/y1sbi9sr","slide":4,"bbox":[548,263,48,22]}
+{"kind":"textbox","id":"sh/lojador2","slide":4,"text":"max(A, B)","textPreview":"max(A, B)","textChars":9,"textLines":1,"bbox":[600,239,190,70]}
+{"kind":"shape","id":"sh/0natkjax","slide":4,"bbox":[243,253,78,1]}
+{"kind":"shape","id":"sh/nqlsfy98","slide":4,"bbox":[243,349,44,1]}
+{"kind":"shape","id":"sh/mpsbmtsn","slide":4,"bbox":[287,274,1,75]}
+{"kind":"shape","id":"sh/9s3ahore","slide":4,"bbox":[287,274,34,1]}
+{"kind":"textbox","id":"sh/8ruto3at","slide":4,"text":"One transaction","textPreview":"One transaction","textChars":15,"textLines":1,"bbox":[850,193,260,26]}
+{"kind":"shape","id":"sh/vulsjy9k","slide":4,"bbox":[850,237,9,9]}
+{"kind":"textbox","id":"sh/atcbqtsz","slide":4,"text":"Lock rows with SELECT … FOR UPDATE","textPreview":"Lock rows with SELECT … FOR UPDATE","textChars":34,"textLines":1,"bbox":[872,226,338,54]}
+{"kind":"shape","id":"sh/6pgvixc7","slide":4,"bbox":[850,297,9,9]}
+{"kind":"textbox","id":"sh/7qpwb2ts","slide":4,"text":"Check funds after acquiring locks","textPreview":"Check funds after acquiring locks","textChars":33,"textLines":1,"bbox":[872,286,338,54]}
+{"kind":"shape","id":"sh/srydk7ux","slide":4,"bbox":[850,357,9,9]}
+{"kind":"textbox","id":"sh/tc7edcbi","slide":4,"text":"Debit and credit, then commit atomically","textPreview":"Debit and credit, then commit atomically","textChars":40,"textLines":1,"bbox":[872,346,338,54]}
+{"kind":"shape","id":"sh/ilwvexcv","slide":4,"bbox":[76,437,1128,1]}
+{"kind":"textbox","id":"sh/jm5c72tg","slide":4,"text":"Pessimistic locking","textPreview":"Pessimistic locking","textChars":19,"textLines":1,"bbox":[80,465,310,29]}
+{"kind":"textbox","id":"sh/knedg7u1","slide":4,"text":"Strong fit for conflicting financial writes. Waits can throttle hot accounts.","textPreview":"Strong fit for conflicting financial writes. Waits can throttle hot accounts.","textChars":77,"textLines":1,"bbox":[80,501,490,72]}
+{"kind":"textbox","id":"sh/5one9sbm","slide":4,"text":"Optimistic locking","textPreview":"Optimistic locking","textChars":18,"textLines":1,"bbox":[654,465,310,29]}
+{"kind":"textbox","id":"sh/2h0vqhcf","slide":4,"text":"Version checks avoid long locks, but conflicts need retries under contention.","textPreview":"Version checks avoid long locks, but conflicts need retries under contention.","textChars":77,"textLines":1,"bbox":[654,501,490,72]}
+{"kind":"textbox","id":"sh/3i9wjmtk","slide":4,"text":"AOP note: @Transactional advice applies through the Spring proxy; self-invocation can bypass it.","textPreview":"AOP note: @Transactional advice applies through the Spring proxy; self-invocation can bypass it.","textChars":96,"textLines":1,"bbox":[80,610,1100,34]}
+{"kind":"notes","id":"nt/7nm3ss","slide":4,"text":"Explain the classic deadlock: one transfer locks A then waits for B while another holds B and waits for A. Sorting account identifiers makes both acquire locks in the same order, removing that cycle for this access path. It does not eliminate every possible database deadlock, so production code should handle transient failures. Contrast pessimistic locking with optimistic version checks. Mention that Spring transaction advice is proxy based and self-invocation can bypass it."}
+{"kind":"slide","id":"sl/bp9yr6","slide":5,"title":"API RELIABILITY","textShapes":12}
+{"kind":"shape","id":"sh/ipsvuhwb","slide":5,"bbox":[0,0,14,720]}
+{"kind":"textbox","id":"sh/5s3e5wvm","slide":5,"text":"API RELIABILITY","textPreview":"API RELIABILITY","textChars":15,"textLines":1,"bbox":[62,34,700,24]}
+{"kind":"textbox","id":"sh/4ruxwre1","slide":5,"name":"slide-title","text":"Idempotency: retries map to one logical transfer","textPreview":"Idempotency: retries map to one logical transfer","textChars":48,"textLines":1,"bbox":[62,66,1156,68]}
+{"kind":"shape","id":"sh/rulw7mds","slide":5,"bbox":[62,145,1156,1]}
+{"kind":"textbox","id":"sh/6tcfy1w7","slide":5,"text":"05","textPreview":"05","textChars":2,"textLines":1,"bbox":[1178,674,42,20]}
+{"kind":"textbox","id":"sh/tw3e9wvy","slide":5,"text":"Request 1\nkey: k-123","textPreview":"Request 1 | key: k-123","textChars":20,"textLines":2,"bbox":[76,239,190,88]}
+{"kind":"textbox","id":"sh/svux0red","slide":5,"text":"Request 2\nkey: k-123","textPreview":"Request 2 | key: k-123","textChars":20,"textLines":2,"bbox":[76,365,190,88]}
+{"kind":"textbox","id":"sh/7yhwv2xo","slide":5,"text":"Redis\nSET key if absent\nTTL","textPreview":"Redis | SET key if absent | TTL","textChars":27,"textLines":3,"bbox":[367,294,210,112]}
+{"kind":"textbox","id":"sh/mx8vmxw3","slide":5,"text":"Transfer service","textPreview":"Transfer service","textChars":16,"textLines":1,"bbox":[682,294,205,112]}
+{"kind":"textbox","id":"sh/s7apofql","slide":5,"text":"PostgreSQL\nunique client + key\ntransfer result","textPreview":"PostgreSQL | unique client + key | transfer result","textChars":46,"textLines":3,"bbox":[987,294,224,112]}
+{"kind":"shape","id":"sh/d8j6hk76","slide":5,"bbox":[269,272,70,22]}
+{"kind":"shape","id":"sh/65s7mp8f","slide":5,"bbox":[269,397,70,22]}
+{"kind":"shape","id":"sh/r61ofup0","slide":5,"bbox":[580,338,92,22]}
+{"kind":"shape","id":"sh/0vupsz6h","slide":5,"bbox":[890,338,88,22]}
+{"kind":"textbox","id":"sh/1w36l472","slide":5,"text":"First request proceeds","textPreview":"First request proceeds","textChars":22,"textLines":1,"bbox":[371,445,210,26]}
+{"kind":"textbox","id":"sh/ets7qpor","slide":5,"text":"Duplicate returns the original outcome","textPreview":"Duplicate returns the original outcome","textChars":38,"textLines":1,"bbox":[651,445,285,26]}
+{"kind":"shape","id":"sh/fulojupw","slide":5,"bbox":[76,514,1128,1]}
+{"kind":"textbox","id":"sh/wzq5gvqd","slide":5,"text":"Design details","textPreview":"Design details","textChars":14,"textLines":1,"bbox":[78,543,220,28]}
+{"kind":"textbox","id":"sh/h0z6907y","slide":5,"text":"Scope key by client  ·  fingerprint request body  ·  define in-progress behavior  ·  persist uniqueness in PostgreSQL","textPreview":"Scope key by client  ·  fingerprint request body  ·  define in-progress behavior  ·  persist uniqueness in PostgreSQL","textChars":117,"textLines":1,"bbox":[78,582,1100,52]}
+{"kind":"notes","id":"nt/bp9yr6","slide":5,"text":"Use a concrete retry example: the client times out and repeats the request with the same key. Redis can quickly coordinate duplicate attempts with an expiring key, but the database should enforce a durable unique constraint as the final correctness guard. A request fingerprint prevents accidental reuse of one key for different transfer parameters."}
+{"kind":"slide","id":"sl/yd52ep","slide":6,"title":"RELIABLE MESSAGING","textShapes":16}
+{"kind":"shape","id":"sh/nypknad4","slide":6,"bbox":[0,0,14,720]}
+{"kind":"textbox","id":"sh/ozylgvup","slide":6,"text":"RELIABLE MESSAGING","textPreview":"RELIABLE MESSAGING","textChars":18,"textLines":1,"bbox":[62,34,700,24]}
+{"kind":"textbox","id":"sh/9k72p0va","slide":6,"name":"slide-title","text":"Transactional outbox: reliable event delivery","textPreview":"Transactional outbox: reliable event delivery","textChars":45,"textLines":1,"bbox":[62,66,1156,68]}
+{"kind":"shape","id":"sh/etg3alcn","slide":6,"bbox":[62,145,1156,1]}
+{"kind":"textbox","id":"sh/fupkjqds","slide":6,"text":"06","textPreview":"06","textChars":2,"textLines":1,"bbox":[1178,674,42,20]}
+{"kind":"textbox","id":"sh/0vylcvud","slide":6,"text":"Unsafe dual write","textPreview":"Unsafe dual write","textChars":17,"textLines":1,"bbox":[76,180,270,28]}
+{"kind":"textbox","id":"sh/1w72l0vy","slide":6,"text":"Commit database","textPreview":"Commit database","textChars":15,"textLines":1,"bbox":[80,222,205,66]}
+{"kind":"textbox","id":"sh/yp03mpcr","slide":6,"text":"Publish Kafka","textPreview":"Publish Kafka","textChars":13,"textLines":1,"bbox":[80,326,205,66]}
+{"kind":"textbox","id":"sh/jq94vudc","slide":6,"text":"Either step can fail after the other succeeds","textPreview":"Either step can fail after the other succeeds","textChars":45,"textLines":1,"bbox":[79,418,260,53]}
+{"kind":"shape","id":"sh/rmlkb2hw","slide":6,"bbox":[372,179,1,363]}
+{"kind":"textbox","id":"sh/6lc3ix0b","slide":6,"text":"Atomic database transaction","textPreview":"Atomic database transaction","textChars":27,"textLines":1,"bbox":[422,180,520,28]}
+{"kind":"textbox","id":"sh/to32dczm","slide":6,"text":"Update balances\n+ transfer row","textPreview":"Update balances | + transfer row","textChars":30,"textLines":2,"bbox":[422,232,220,86]}
+{"kind":"textbox","id":"sh/snulk7y1","slide":6,"text":"Insert outbox event","textPreview":"Insert outbox event","textChars":19,"textLines":1,"bbox":[422,359,220,72]}
+{"kind":"shape","id":"sh/fqlkf2hs","slide":6,"bbox":[532,318,1,33]}
+{"kind":"textbox","id":"sh/epc3mhg7","slide":6,"text":"Poller / CDC","textPreview":"Poller / CDC","textChars":12,"textLines":1,"bbox":[711,286,175,82]}
+{"kind":"textbox","id":"sh/1sn2hczy","slide":6,"text":"Kafka","textPreview":"Kafka","textChars":5,"textLines":1,"bbox":[944,286,125,82]}
+{"kind":"textbox","id":"sh/grelo7yd","slide":6,"text":"Audit / notifications","textPreview":"Audit / notifications","textChars":21,"textLines":1,"bbox":[1095,286,140,82]}
+{"kind":"shape","id":"sh/3e5kjmho","slide":6,"bbox":[647,310,58,22]}
+{"kind":"shape","id":"sh/2dw3qhgj","slide":6,"bbox":[889,310,48,22]}
+{"kind":"shape","id":"sh/y9gnil0r","slide":6,"bbox":[1070,310,22,22]}
+{"kind":"textbox","id":"sh/za9obq1w","slide":6,"text":"Delivery is at least once","textPreview":"Delivery is at least once","textChars":25,"textLines":1,"bbox":[711,416,370,28]}
+{"kind":"textbox","id":"sh/kbi5kvih","slide":6,"text":"Consumers deduplicate by event or transfer ID","textPreview":"Consumers deduplicate by event or transfer ID","textChars":45,"textLines":1,"bbox":[711,451,440,42]}
+{"kind":"textbox","id":"sh/lcr6d0j2","slide":6,"text":"Polling is simple to operate; CDC can reduce polling overhead at greater operational complexity.","textPreview":"Polling is simple to operate; CDC can reduce polling overhead at greater operational complexity.","textChars":96,"textLines":1,"bbox":[422,554,785,55]}
+{"kind":"notes","id":"nt/yd52ep","slide":6,"text":"Describe the dual-write gap. The transfer, balance changes, and outbox row commit together in PostgreSQL. A publisher later sends the event. If it crashes after Kafka accepts the event but before marking the row delivered, it may publish again. That is at-least-once delivery, so consumers must be idempotent. Debezium CDC is a roadmap option, not a free reliability upgrade."}
+{"kind":"slide","id":"sl/iddnzb","slide":7,"title":"ACCESS CONTROL","textShapes":13}
+{"kind":"shape","id":"sh/7ypkbyls","slide":7,"bbox":[0,0,14,720]}
+{"kind":"textbox","id":"sh/8zy143md","slide":7,"text":"ACCESS CONTROL","textPreview":"ACCESS CONTROL","textChars":14,"textLines":1,"bbox":[62,34,700,24]}
+{"kind":"textbox","id":"sh/9072do3y","slide":7,"name":"slide-title","text":"Security and resilience at the API boundary","textPreview":"Security and resilience at the API boundary","textChars":43,"textLines":1,"bbox":[62,66,1156,68]}
+{"kind":"shape","id":"sh/u1gj6t4j","slide":7,"bbox":[62,145,1156,1]}
+{"kind":"textbox","id":"sh/v2pkfylo","slide":7,"text":"07","textPreview":"07","textChars":2,"textLines":1,"bbox":[1178,674,42,20]}
+{"kind":"textbox","id":"sh/w3y183m9","slide":7,"text":"JWT","textPreview":"JWT","textChars":3,"textLines":1,"bbox":[76,247,128,74]}
+{"kind":"shape","id":"sh/h472h83u","slide":7,"bbox":[212,273,54,22]}
+{"kind":"textbox","id":"sh/ip0jad4f","slide":7,"text":"Spring Security\nfilter chain","textPreview":"Spring Security | filter chain","textChars":28,"textLines":2,"bbox":[274,235,208,98]}
+{"kind":"shape","id":"sh/jq9kjil0","slide":7,"bbox":[491,273,51,22]}
+{"kind":"textbox","id":"sh/rep4fylg","slide":7,"text":"Authorization\nuser ↔ wallet","textPreview":"Authorization | user ↔ wallet","textChars":27,"textLines":2,"bbox":[551,235,204,98]}
+{"kind":"shape","id":"sh/6dwn6dkv","slide":7,"bbox":[763,273,51,22]}
+{"kind":"textbox","id":"sh/tg7mh836","slide":7,"text":"Token bucket\nRedis counters","textPreview":"Token bucket | Redis counters","textChars":27,"textLines":2,"bbox":[822,235,196,98]}
+{"kind":"shape","id":"sh/sfy5832l","slide":7,"bbox":[1025,273,51,22]}
+{"kind":"textbox","id":"sh/jq54byl4","slide":7,"text":"Wallet API","textPreview":"Wallet API","textChars":10,"textLines":1,"bbox":[1082,247,132,74]}
+{"kind":"textbox","id":"sh/ipwn2tkj","slide":7,"text":"JWT validation authenticates the caller. Wallet-level checks authorize the transfer.","textPreview":"JWT validation authenticates the caller. Wallet-level checks authorize the transfer.","textChars":84,"textLines":1,"bbox":[77,385,1090,39]}
+{"kind":"shape","id":"sh/5cnmd83a","slide":7,"bbox":[76,458,1128,1]}
+{"kind":"textbox","id":"sh/4be5432p","slide":7,"text":"Token bucket policy","textPreview":"Token bucket policy","textChars":19,"textLines":1,"bbox":[80,489,258,29]}
+{"kind":"textbox","id":"sh/3m9onil8","slide":7,"text":"Allows short bursts while limiting average request rate. Apply per user or client.","textPreview":"Allows short bursts while limiting average request rate. Apply per user or client.","textChars":82,"textLines":1,"bbox":[80,530,475,54]}
+{"kind":"textbox","id":"sh/2lgnexk3","slide":7,"text":"Redis outage policy","textPreview":"Redis outage policy","textChars":19,"textLines":1,"bbox":[654,489,258,29]}
+{"kind":"textbox","id":"sh/y1k7mh4b","slide":7,"text":"Fail open favors availability. Fail closed protects capacity but can reject valid requests.","textPreview":"Fail open favors availability. Fail closed protects capacity but can reject valid requests.","textChars":91,"textLines":1,"bbox":[654,530,495,54]}
+{"kind":"notes","id":"nt/iddnzb","slide":7,"text":"Walk through the filter chain: validate token signature and claims, then authorize the caller against the source wallet. Rate limiting is a separate resilience control. A token bucket permits bursts while bounding the long-run rate. Distributed counters require atomic Redis operations and a deliberate fail-open or fail-closed policy."}
+{"kind":"slide","id":"sl/5kmx4l","slide":8,"title":"VERIFICATION","textShapes":15}
+{"kind":"shape","id":"sh/5sbe94z2","slide":8,"bbox":[0,0,14,720]}
+{"kind":"textbox","id":"sh/ipkvy90r","slide":8,"text":"VERIFICATION","textPreview":"VERIFICATION","textChars":12,"textLines":1,"bbox":[62,34,700,24]}
+{"kind":"textbox","id":"sh/jqtw7ehc","slide":8,"name":"slide-title","text":"Testing strategy: assert invariants under contention","textPreview":"Testing strategy: assert invariants under contention","textChars":52,"textLines":1,"bbox":[62,66,1156,68]}
+{"kind":"shape","id":"sh/wn2dwzil","slide":8,"bbox":[62,145,1156,1]}
+{"kind":"textbox","id":"sh/xobe54z6","slide":8,"text":"08","textPreview":"08","textChars":2,"textLines":1,"bbox":[1178,674,42,20]}
+{"kind":"textbox","id":"sh/al0vup0f","slide":8,"text":"TEST LAYERS","textPreview":"TEST LAYERS","textChars":11,"textLines":1,"bbox":[76,186,220,25]}
+{"kind":"shape","id":"sh/vm9w3uh0","slide":8,"bbox":[123,545,1032,1]}
+{"kind":"shape","id":"sh/8jidszip","slide":8,"bbox":[100,246,265,8]}
+{"kind":"textbox","id":"sh/9kre1kzu","slide":8,"text":"Unit","textPreview":"Unit","textChars":4,"textLines":1,"bbox":[100,278,265,33]}
+{"kind":"textbox","id":"sh/dw361gni","slide":8,"text":"JUnit 5 + Mockito","textPreview":"JUnit 5 + Mockito","textChars":17,"textLines":1,"bbox":[100,319,265,28]}
+{"kind":"textbox","id":"sh/cvu58v6x","slide":8,"text":"Business rules\ninsufficient funds\nerror mapping","textPreview":"Business rules | insufficient funds | error mapping","textChars":47,"textLines":3,"bbox":[100,365,265,111]}
+{"kind":"shape","id":"sh/rulozq5c","slide":8,"bbox":[110,533,26,26]}
+{"kind":"shape","id":"sh/qtsn6lor","slide":8,"bbox":[446,246,340,8]}
+{"kind":"textbox","id":"sh/psj6xgnm","slide":8,"text":"Integration","textPreview":"Integration","textChars":11,"textLines":1,"bbox":[446,278,340,33]}
+{"kind":"textbox","id":"sh/4ra54b61","slide":8,"text":"Real database boundaries","textPreview":"Real database boundaries","textChars":24,"textLines":1,"bbox":[446,319,340,28]}
+{"kind":"textbox","id":"sh/3q1ov65g","slide":8,"text":"Transactions\nconstraints\nrow-lock behavior","textPreview":"Transactions | constraints | row-lock behavior","textChars":42,"textLines":3,"bbox":[446,365,340,111]}
+{"kind":"shape","id":"sh/2psn21ov","slide":8,"bbox":[456,533,26,26]}
+{"kind":"shape","id":"sh/hoj6twna","slide":8,"bbox":[838,246,340,8]}
+{"kind":"textbox","id":"sh/g3a50r6p","slide":8,"text":"Concurrency + load","textPreview":"Concurrency + load","textChars":18,"textLines":1,"bbox":[838,278,340,33]}
+{"kind":"textbox","id":"sh/87u5gbel","slide":8,"text":"Threads and connection pools","textPreview":"Threads and connection pools","textChars":28,"textLines":1,"bbox":[838,319,340,28]}
+{"kind":"textbox","id":"sh/t8n6pgf6","slide":8,"text":"Overlapping transfers\nduplicate retries\nlatency percentiles","textPreview":"Overlapping transfers | duplicate retries | latency percentiles","textChars":59,"textLines":3,"bbox":[838,365,340,111]}
+{"kind":"shape","id":"sh/65cne1wf","slide":8,"bbox":[848,533,26,26]}
+{"kind":"textbox","id":"sh/76lon6x0","slide":8,"text":"Invariant: completed transfers conserve value and never debit below the permitted balance.","textPreview":"Invariant: completed transfers conserve value and never debit below the permitted balance.","textChars":90,"textLines":1,"bbox":[78,590,1120,38]}
+{"kind":"textbox","id":"sh/k3u5crep","slide":8,"text":"Report workload, hardware, concurrency, and p95/p99 latency with any throughput result.","textPreview":"Report workload, hardware, concurrency, and p95/p99 latency with any throughput result.","textChars":87,"textLines":1,"bbox":[78,631,1100,27]}
+{"kind":"notes","id":"nt/5kmx4l","slide":8,"text":"Describe the test pyramid and stress that unit tests alone cannot validate PostgreSQL row locking. Run concurrency scenarios against the database engine used by the service. Assert value conservation and balance bounds. No benchmark result is claimed in this deck; report throughput only after measuring a specified workload, hardware, pool size, and latency percentiles."}
+{"kind":"slide","id":"sl/6kafac","slide":9,"title":"TRADE-OFFS AND ROADMAP","textShapes":19}
+{"kind":"shape","id":"sh/e5s7mlkv","slide":9,"bbox":[0,0,14,720]}
+{"kind":"textbox","id":"sh/18jqx036","slide":9,"text":"TRADE-OFFS AND ROADMAP","textPreview":"TRADE-OFFS AND ROADMAP","textChars":22,"textLines":1,"bbox":[62,34,700,24]}
+{"kind":"textbox","id":"sh/07apov2l","slide":9,"name":"slide-title","text":"Known limits and the next engineering steps","textPreview":"Known limits and the next engineering steps","textChars":43,"textLines":1,"bbox":[62,66,1156,68]}
+{"kind":"shape","id":"sh/na18zqlc","slide":9,"bbox":[62,145,1156,1]}
+{"kind":"textbox","id":"sh/29srqlkr","slide":9,"text":"09","textPreview":"09","textChars":2,"textLines":1,"bbox":[1178,674,42,20]}
+{"kind":"textbox","id":"sh/9c3q10ji","slide":9,"text":"PRESSURE POINT","textPreview":"PRESSURE POINT","textChars":14,"textLines":1,"bbox":[78,184,280,24]}
+{"kind":"textbox","id":"sh/oba9sv2x","slide":9,"text":"WHY IT MATTERS","textPreview":"WHY IT MATTERS","textChars":14,"textLines":1,"bbox":[444,184,330,24]}
+{"kind":"textbox","id":"sh/bel83a18","slide":9,"text":"NEXT STEP","textPreview":"NEXT STEP","textChars":9,"textLines":1,"bbox":[841,184,320,24]}
+{"kind":"shape","id":"sh/adcru5k3","slide":9,"bbox":[76,218,1128,1]}
+{"kind":"textbox","id":"sh/w76tozip","slide":9,"text":"Hot account locks","textPreview":"Hot account locks","textChars":17,"textLines":1,"bbox":[78,241,330,36]}
+{"kind":"textbox","id":"sh/x8fuh4ju","slide":9,"text":"Writes to one wallet serialize","textPreview":"Writes to one wallet serialize","textChars":30,"textLines":1,"bbox":[444,241,354,52]}
+{"kind":"textbox","id":"sh/a5obm90j","slide":9,"text":"Profile contention; define workload limits","textPreview":"Profile contention; define workload limits","textChars":42,"textLines":1,"bbox":[841,241,355,52]}
+{"kind":"shape","id":"sh/v6xcfe14","slide":9,"bbox":[76,306,1128,1]}
+{"kind":"textbox","id":"sh/kvqtsjil","slide":9,"text":"Outbox polling","textPreview":"Outbox polling","textChars":14,"textLines":1,"bbox":[78,328,330,36]}
+{"kind":"textbox","id":"sh/5wzuloz6","slide":9,"text":"Database queries add load and delivery lag","textPreview":"Database queries add load and delivery lag","textChars":42,"textLines":1,"bbox":[444,328,354,52]}
+{"kind":"textbox","id":"sh/i9obq90f","slide":9,"text":"Tune batches; evaluate Debezium CDC","textPreview":"Tune batches; evaluate Debezium CDC","textChars":35,"textLines":1,"bbox":[841,328,355,52]}
+{"kind":"shape","id":"sh/jahcjeh0","slide":9,"bbox":[76,393,1128,1]}
+{"kind":"textbox","id":"sh/szqtwjih","slide":9,"text":"Shared dependencies","textPreview":"Shared dependencies","textChars":19,"textLines":1,"bbox":[78,415,330,36]}
+{"kind":"textbox","id":"sh/t0zupoz2","slide":9,"text":"PostgreSQL, Redis, Kafka need failover","textPreview":"PostgreSQL, Redis, Kafka need failover","textChars":38,"textLines":1,"bbox":[444,415,354,52]}
+{"kind":"textbox","id":"sh/1gfu9or6","slide":9,"text":"Deploy replication, alerts, recovery drills","textPreview":"Deploy replication, alerts, recovery drills","textChars":43,"textLines":1,"bbox":[841,415,355,52]}
+{"kind":"shape","id":"sh/0vmtgja1","slide":9,"bbox":[76,480,1128,1]}
+{"kind":"textbox","id":"sh/fuds7e9g","slide":9,"text":"Cross-shard transfers","textPreview":"Cross-shard transfers","textChars":21,"textLines":1,"bbox":[78,502,330,36]}
+{"kind":"textbox","id":"sh/et4be9sv","slide":9,"text":"Partitioning complicates atomic movement","textPreview":"Partitioning complicates atomic movement","textChars":40,"textLines":1,"bbox":[444,502,354,52]}
+{"kind":"textbox","id":"sh/pkfud8ri","slide":9,"text":"Shard only after measured pressure","textPreview":"Shard only after measured pressure","textChars":34,"textLines":1,"bbox":[841,502,355,52]}
+{"kind":"textbox","id":"sh/oj6tk3ax","slide":9,"text":"Horizontal API scaling does not remove contention on shared account rows.","textPreview":"Horizontal API scaling does not remove contention on shared account rows.","textChars":73,"textLines":1,"bbox":[78,603,1100,36]}
+{"kind":"notes","id":"nt/6kafac","slide":9,"text":"Be explicit that database row locking protects correctness but constrains writes to hot accounts. Horizontal API scaling helps stateless request handling, not conflicting updates to one row. CDC can lower polling overhead but adds operational dependencies. Sharding is a later option because cross-shard transfers become much harder to coordinate atomically."}
+{"kind":"slide","id":"sl/p8qk0r","slide":10,"title":"CONCLUSION","textShapes":15}
+{"kind":"shape","id":"sh/krqhkz2l","slide":10,"bbox":[0,0,17,720]}
+{"kind":"textbox","id":"sh/zqhgrul0","slide":10,"text":"CONCLUSION","textPreview":"CONCLUSION","textChars":10,"textLines":1,"bbox":[76,72,400,28]}
+{"kind":"textbox","id":"sh/yp8zipkf","slide":10,"text":"A safe transfer is a coordinated set of guarantees","textPreview":"A safe transfer is a coordinated set of guarantees","textChars":50,"textLines":1,"bbox":[76,126,1030,82]}
+{"kind":"textbox","id":"sh/9wjyx432","slide":10,"text":"01","textPreview":"01","textChars":2,"textLines":1,"bbox":[76,293,54,27]}
+{"kind":"textbox","id":"sh/8vahoz2h","slide":10,"text":"Authenticate","textPreview":"Authenticate","textChars":12,"textLines":1,"bbox":[76,335,198,40]}
+{"kind":"shape","id":"sh/7u1gvulw","slide":10,"bbox":[250,347,36,18]}
+{"kind":"textbox","id":"sh/mtszm9kb","slide":10,"text":"02","textPreview":"02","textChars":2,"textLines":1,"bbox":[302,293,54,27]}
+{"kind":"textbox","id":"sh/p0fylk3y","slide":10,"text":"Deduplicate","textPreview":"Deduplicate","textChars":11,"textLines":1,"bbox":[302,335,198,40]}
+{"kind":"shape","id":"sh/oz6hcf2d","slide":10,"bbox":[476,347,36,18]}
+{"kind":"textbox","id":"sh/e10je5sf","slide":10,"text":"03","textPreview":"03","textChars":2,"textLines":1,"bbox":[528,293,54,27]}
+{"kind":"textbox","id":"sh/f2907a90","slide":10,"text":"Lock + transact","textPreview":"Lock + transact","textChars":15,"textLines":1,"bbox":[528,335,198,40]}
+{"kind":"shape","id":"sh/03i1gval","slide":10,"bbox":[702,347,36,18]}
+{"kind":"textbox","id":"sh/14ri90r6","slide":10,"text":"04","textPreview":"04","textChars":2,"textLines":1,"bbox":[754,293,54,27]}
+{"kind":"textbox","id":"sh/250ji5sr","slide":10,"text":"Record outbox","textPreview":"Record outbox","textChars":13,"textLines":1,"bbox":[754,335,198,40]}
+{"kind":"shape","id":"sh/nqt0ba9c","slide":10,"bbox":[928,347,36,18]}
+{"kind":"textbox","id":"sh/or21kfqh","slide":10,"text":"05","textPreview":"05","textChars":2,"textLines":1,"bbox":[980,293,54,27]}
+{"kind":"textbox","id":"sh/psbidkr2","slide":10,"text":"Publish safely","textPreview":"Publish safely","textChars":14,"textLines":1,"bbox":[980,335,198,40]}
+{"kind":"shape","id":"sh/atkjmp8n","slide":10,"bbox":[76,425,1108,1]}
+{"kind":"textbox","id":"sh/but0fu98","slide":10,"text":"Correctness lives in durable state. Retries and event delivery need explicit contracts.","textPreview":"Correctness lives in durable state. Retries and event delivery need explicit contracts.","textChars":87,"textLines":1,"bbox":[76,464,1040,66]}
+{"kind":"textbox","id":"sh/7yd03upg","slide":10,"text":"Questions & discussion","textPreview":"Questions & discussion","textChars":22,"textLines":1,"bbox":[76,582,560,56]}
+{"kind":"textbox","id":"sh/mx4zupov","slide":10,"text":"10","textPreview":"10","textChars":2,"textLines":1,"bbox":[1178,674,42,20]}
+{"kind":"notes","id":"nt/p8qk0r","slide":10,"text":"Close by summarizing the transfer lifecycle: authenticate and authorize, deduplicate retries, lock and update both accounts atomically, record event intent in the outbox, then publish with at-least-once semantics. Invite questions about lock contention, idempotency guarantees, and the outbox trade-off."}

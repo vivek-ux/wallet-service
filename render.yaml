@@ -30,9 +30,6 @@ services:
         generateValue: true
       - key: KAFKA_ENABLED
         value: "false"
-      - key: EMAIL_ENABLED
-        value: "false"
-
   - type: keyvalue
     name: vivek-wallet-redis
     plan: free

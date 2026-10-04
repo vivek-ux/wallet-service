@@ -22,9 +22,7 @@ public class SecurityConfig {
         http
             .csrf(csrf -> csrf.disable())
             .sessionManagement(session ->
-                    session.sessionCreationPolicy(
-                            SessionCreationPolicy.STATELESS
-                    )
+                    session.sessionCreationPolicy(SessionCreationPolicy.STATELESS)
             )
             .authorizeHttpRequests(auth -> auth
                     .requestMatchers(
@@ -34,8 +32,7 @@ public class SecurityConfig {
                             "/app.js",
                             "/favicon.ico",
                             "/health",
-                            "/auth/login",
-                            "/auth/register"
+                            "/api/v1/auth/**"  // <-- Updated to allow /login, /register, and /refresh
                     )
                     .permitAll()
                     .anyRequest()

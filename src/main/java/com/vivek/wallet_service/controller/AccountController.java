@@ -15,6 +15,8 @@ import com.vivek.wallet_service.dto.CreateTransferRequest;
 import com.vivek.wallet_service.dto.TransactionResponse;
 import com.vivek.wallet_service.service.AccountService;
 
+import jakarta.validation.Valid;
+
 @RestController
 @RequestMapping("/accounts")
 public class AccountController {
@@ -36,14 +38,14 @@ public class AccountController {
     }
 
     @PostMapping("/create")
-    public String createAccount(@RequestBody CreateAccountRequest request) {
+    public String createAccount(@Valid @RequestBody CreateAccountRequest request) {
         accountService.createAccount(request.getInitialBalance());
         return "Account created";
     }
 
     @PostMapping("/transfer")
     public String transferMoney(
-            @RequestBody CreateTransferRequest request,
+            @Valid @RequestBody CreateTransferRequest request,
             @RequestHeader("Idempotency-Key") String idempotencyKey
     ) {
         accountService.transferMoney(

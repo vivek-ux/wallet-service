@@ -2,6 +2,8 @@ package com.vivek.wallet_service.service;
 
 import java.nio.charset.StandardCharsets;
 import java.util.Date;
+import java.util.HashMap;
+import java.util.Map;
 
 import javax.crypto.SecretKey;
 
@@ -9,24 +11,33 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
 import io.jsonwebtoken.Claims;
+import io.jsonwebtoken.JwtException;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.security.Keys;
 
 @Service
 public class JwtService {
 
-    private static final long TOKEN_EXPIRATION_MILLIS = 1000 * 60 * 60;
+    // 15-minute expiration for access tokens
+    private static final long ACCESS_TOKEN_EXPIRATION_MILLIS = 1000 * 60 * 15;
     private final SecretKey secretKey;
 
     public JwtService(@Value("${app.jwt.secret}") String secret) {
         this.secretKey = Keys.hmacShaKeyFor(secret.getBytes(StandardCharsets.UTF_8));
     }
 
-    public String generateToken(String email) {
+    /**
+     * Generates a short-lived access token with userId and email claims.
+     */
+    public String generateAccessToken(Long userId, String email) {
+        Map<String, Object> extraClaims = new HashMap<>();
+        extraClaims.put("userId", userId);
+
         Date now = new Date();
-        Date expiresAt = new Date(System.currentTimeMillis() + TOKEN_EXPIRATION_MILLIS);
+        Date expiresAt = new Date(now.getTime() + ACCESS_TOKEN_EXPIRATION_MILLIS);
 
         return Jwts.builder()
+                .claims(extraClaims)
                 .subject(email)
                 .issuedAt(now)
                 .expiration(expiresAt)
@@ -38,16 +49,20 @@ public class JwtService {
         return extractClaims(token).getSubject();
     }
 
+    public Long extractUserId(String token) {
+        return extractClaims(token).get("userId", Long.class);
+    }
+
     public boolean isTokenValid(String token) {
         try {
-            extractClaims(token);
-            return true;
-        } catch (Exception e) {
+            Claims claims = extractClaims(token);
+            return !claims.getExpiration().before(new Date());
+        } catch (JwtException | IllegalArgumentException e) {
             return false;
         }
     }
 
-    private Claims extractClaims(String token) {
+    public Claims extractClaims(String token) {
         return Jwts.parser()
                 .verifyWith(secretKey)
                 .build()

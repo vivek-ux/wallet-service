@@ -8,8 +8,6 @@ import org.springframework.web.bind.annotation.RestController;
 
 import com.vivek.wallet_service.dto.RiskAssessmentRequest;
 import com.vivek.wallet_service.dto.RiskAssessmentResponse;
-import com.vivek.wallet_service.dto.AiRiskAssessmentResponse;
-import com.vivek.wallet_service.service.AiRiskAssessmentClient;
 import com.vivek.wallet_service.service.RiskAssessmentService;
 
 @RestController
@@ -17,14 +15,9 @@ import com.vivek.wallet_service.service.RiskAssessmentService;
 public class RiskAssessmentController {
 
     private final RiskAssessmentService riskAssessmentService;
-    private final AiRiskAssessmentClient aiRiskAssessmentClient;
 
-    public RiskAssessmentController(
-            RiskAssessmentService riskAssessmentService,
-            AiRiskAssessmentClient aiRiskAssessmentClient
-    ) {
+    public RiskAssessmentController(RiskAssessmentService riskAssessmentService) {
         this.riskAssessmentService = riskAssessmentService;
-        this.aiRiskAssessmentClient = aiRiskAssessmentClient;
     }
 
     @PostMapping("/assess-transfer")
@@ -34,17 +27,6 @@ public class RiskAssessmentController {
                 request.getToEmail(),
                 request.getAmount()
         );
-    }
-
-    @PostMapping("/assess-transfer-ai")
-    public AiRiskAssessmentResponse assessTransferWithAi(@RequestBody RiskAssessmentRequest request) {
-        RiskAssessmentResponse riskAssessment = riskAssessmentService.assessTransfer(
-                getCurrentUserEmail(),
-                request.getToEmail(),
-                request.getAmount()
-        );
-
-        return aiRiskAssessmentClient.explainRisk(riskAssessment);
     }
 
     private String getCurrentUserEmail() {
