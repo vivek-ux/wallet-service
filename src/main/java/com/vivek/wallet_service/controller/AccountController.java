@@ -18,7 +18,7 @@ import com.vivek.wallet_service.service.AccountService;
 import jakarta.validation.Valid;
 
 @RestController
-@RequestMapping("/accounts")
+@RequestMapping({"/api/v1/accounts", "/accounts"})
 public class AccountController {
 
     private final AccountService accountService;
