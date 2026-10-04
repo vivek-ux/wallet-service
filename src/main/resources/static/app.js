@@ -1,3 +1,4 @@
+const API_BASE = "/api/v1";
 const tokenStorageKey = "walletServiceToken";
 
 const elements = {
@@ -26,18 +27,24 @@ function setToken(token) {
 function clearToken() {
     localStorage.removeItem(tokenStorageKey);
     updateSessionState();
-    elements.balanceValue.textContent = "--";
-    elements.transactionRows.innerHTML = '<tr><td colspan="6">No transactions loaded</td></tr>';
+    if (elements.balanceValue) elements.balanceValue.textContent = "--";
+    if (elements.transactionRows) {
+        elements.transactionRows.innerHTML = '<tr><td colspan="6">No transactions loaded</td></tr>';
+    }
 }
 
 function updateSessionState() {
     const token = getToken();
-    elements.sessionState.textContent = token ? "● Authenticated" : "Signed out";
+    if (elements.sessionState) {
+        elements.sessionState.textContent = token ? "● Authenticated" : "Signed out";
+    }
 }
 
 function showMessage(text, isError = false) {
-    elements.message.textContent = text;
-    elements.message.classList.toggle("error", isError);
+    if (elements.message) {
+        elements.message.textContent = text;
+        elements.message.classList.toggle("error", isError);
+    }
 }
 
 function formData(form) {
@@ -45,20 +52,22 @@ function formData(form) {
 }
 
 async function request(path, options = {}) {
+    const fullPath = path.startsWith("/api/") ? path : `${API_BASE}${path.startsWith("/") ? "" : "/"}${path}`;
+    
     const headers = {
         "Content-Type": "application/json",
         ...options.headers
     };
 
     const token = getToken();
-    const isAuthRequest = path.includes("/auth/");
+    const isAuthRequest = fullPath.includes("/auth/");
 
-    // A stale JWT must not block the public login/register endpoints.
+    // Only attach Authorization header if we have a token AND it's NOT an auth endpoint
     if (token && !isAuthRequest) {
         headers.Authorization = `Bearer ${token}`;
     }
 
-    const response = await fetch(path, {
+    const response = await fetch(fullPath, {
         ...options,
         headers
     });
@@ -76,7 +85,7 @@ async function request(path, options = {}) {
             throw new Error("Your session expired. Please log in again.");
         }
 
-        throw new Error(message || "Request failed");
+        throw new Error(message || `Request failed with status ${response.status}`);
     }
 
     return body;
@@ -103,13 +112,15 @@ function idempotencyKey() {
 
 async function refreshBalance() {
     const balance = await request("/accounts/me/balance");
-    elements.balanceValue.textContent = money(balance);
+    if (elements.balanceValue) elements.balanceValue.textContent = money(balance);
 }
 
 async function refreshHistory() {
     const transactions = await request("/accounts/me/transactions");
 
-    if (transactions.length === 0) {
+    if (!elements.transactionRows) return;
+
+    if (!Array.isArray(transactions) || transactions.length === 0) {
         elements.transactionRows.innerHTML = '<tr><td colspan="6">No transactions yet</td></tr>';
         return;
     }
@@ -117,10 +128,10 @@ async function refreshHistory() {
     elements.transactionRows.innerHTML = transactions.map(transaction => `
         <tr>
             <td>${transaction.id}</td>
-            <td>${transaction.fromEmail}</td>
-            <td>${transaction.toEmail}</td>
+            <td>${transaction.fromEmail || "--"}</td>
+            <td>${transaction.toEmail || "--"}</td>
             <td>${money(transaction.amount)}</td>
-            <td>${transaction.status}</td>
+            <td>${transaction.status || "COMPLETED"}</td>
             <td>${transaction.createdAt ? new Date(transaction.createdAt).toLocaleString() : "--"}</td>
         </tr>
     `).join("");
@@ -133,128 +144,146 @@ async function refreshDashboard() {
     ]);
 }
 
-elements.registerForm.addEventListener("submit", async event => {
-    event.preventDefault();
-    const form = event.currentTarget;
-    const button = form.querySelector("button");
-    button.disabled = true;
-    showMessage("Creating user...");
+if (elements.registerForm) {
+    elements.registerForm.addEventListener("submit", async event => {
+        event.preventDefault();
+        const form = event.currentTarget;
+        const button = form.querySelector("button");
+        button.disabled = true;
+        showMessage("Creating user...");
 
-    try {
-        const data = formData(form);
-        const message = await request("/auth/register", {
-            method: "POST",
-            body: JSON.stringify(data)
-        });
-        showMessage(`${message}. Now log in with the same credentials.`);
-        form.reset();
-    } catch (error) {
-        showMessage(error.message, true);
-    } finally {
-        button.disabled = false;
-    }
-});
+        try {
+            const data = formData(form);
+            const message = await request("/auth/register", {
+                method: "POST",
+                body: JSON.stringify(data)
+            });
+            showMessage(`${typeof message === 'string' ? message : 'User registered'}. Now log in with the same credentials.`);
+            form.reset();
+        } catch (error) {
+            showMessage(error.message, true);
+        } finally {
+            button.disabled = false;
+        }
+    });
+}
 
-elements.loginForm.addEventListener("submit", async event => {
-    event.preventDefault();
-    const form = event.currentTarget;
-    const button = form.querySelector("button");
-    button.disabled = true;
-    showMessage("Logging in...");
+if (elements.loginForm) {
+    elements.loginForm.addEventListener("submit", async event => {
+        event.preventDefault();
+        const form = event.currentTarget;
+        const button = form.querySelector("button");
+        button.disabled = true;
+        showMessage("Logging in...");
 
-    try {
-        const data = formData(form);
-        const token = await request("/auth/login", {
-            method: "POST",
-            body: JSON.stringify(data)
-        });
-        setToken(token);
-        form.reset();
+        try {
+            const data = formData(form);
+            const responseData = await request("/auth/login", {
+                method: "POST",
+                body: JSON.stringify(data)
+            });
+            
+            // Handle both plain string tokens and JSON response objects like { token: "..." }
+            const token = typeof responseData === "object" ? responseData.token : responseData;
+            
+            setToken(token);
+            form.reset();
+            try {
+                await refreshDashboard();
+                showMessage("Logged in");
+            } catch (dashboardError) {
+                if (dashboardError.message.toLowerCase().includes("account not found")) {
+                    showMessage("Logged in. Create your wallet account below to continue.");
+                } else {
+                    showMessage(`Logged in, but dashboard refresh failed: ${dashboardError.message}`, true);
+                }
+            }
+        } catch (error) {
+            showMessage(error.message, true);
+        } finally {
+            button.disabled = false;
+        }
+    });
+}
+
+if (elements.accountForm) {
+    elements.accountForm.addEventListener("submit", async event => {
+        event.preventDefault();
+        const form = event.currentTarget;
+        showMessage("Creating account...");
+
+        try {
+            const data = formData(form);
+            const message = await request("/accounts/create", {
+                method: "POST",
+                body: JSON.stringify({
+                    initialBalance: data.initialBalance
+                })
+            });
+            showMessage(typeof message === 'string' ? message : "Account created");
+            form.reset();
+            await refreshDashboard();
+        } catch (error) {
+            showMessage(error.message, true);
+        }
+    });
+}
+
+if (elements.transferForm) {
+    elements.transferForm.addEventListener("submit", async event => {
+        event.preventDefault();
+        const form = event.currentTarget;
+        showMessage("Sending transfer...");
+
+        try {
+            const data = formData(form);
+            const message = await request("/accounts/transfer", {
+                method: "POST",
+                headers: {
+                    "Idempotency-Key": data.idempotencyKey || idempotencyKey()
+                },
+                body: JSON.stringify({
+                    toEmail: data.toEmail,
+                    amount: data.amount
+                })
+            });
+            showMessage(typeof message === 'string' ? message : "Transfer completed");
+            form.reset();
+            await refreshDashboard();
+        } catch (error) {
+            showMessage(error.message, true);
+        }
+    });
+}
+
+if (elements.refreshButton) {
+    elements.refreshButton.addEventListener("click", async () => {
         try {
             await refreshDashboard();
-            showMessage("Logged in");
-        } catch (dashboardError) {
-            if (dashboardError.message.toLowerCase().includes("account not found")) {
-                showMessage("Logged in. Create your wallet account below to continue.");
-            } else {
-                showMessage(`Logged in, but dashboard refresh failed: ${dashboardError.message}`, true);
-            }
+            showMessage("Dashboard refreshed");
+        } catch (error) {
+            showMessage(error.message, true);
         }
-    } catch (error) {
-        showMessage(error.message, true);
-    } finally {
-        button.disabled = false;
-    }
-});
+    });
+}
 
-elements.accountForm.addEventListener("submit", async event => {
-    event.preventDefault();
-    const form = event.currentTarget;
-    showMessage("Creating account...");
+if (elements.historyButton) {
+    elements.historyButton.addEventListener("click", async () => {
+        try {
+            await refreshHistory();
+            showMessage("Transactions refreshed");
+        } catch (error) {
+            showMessage(error.message, true);
+        }
+    });
+}
 
-    try {
-        const data = formData(form);
-        const message = await request("/accounts/create", {
-            method: "POST",
-            body: JSON.stringify({
-                initialBalance: data.initialBalance
-            })
-        });
-        showMessage(message);
-        form.reset();
-        await refreshDashboard();
-    } catch (error) {
-        showMessage(error.message, true);
-    }
-});
-
-elements.transferForm.addEventListener("submit", async event => {
-    event.preventDefault();
-    const form = event.currentTarget;
-    showMessage("Sending transfer...");
-
-    try {
-        const data = formData(form);
-        const message = await request("/accounts/transfer", {
-            method: "POST",
-            headers: {
-                "Idempotency-Key": data.idempotencyKey || idempotencyKey()
-            },
-            body: JSON.stringify({
-                toEmail: data.toEmail,
-                amount: data.amount
-            })
-        });
-        showMessage(message);
-        form.reset();
-        await refreshDashboard();
-    } catch (error) {
-        showMessage(error.message, true);
-    }
-});
-
-elements.refreshButton.addEventListener("click", async () => {
-    try {
-        await refreshDashboard();
-        showMessage("Dashboard refreshed");
-    } catch (error) {
-        showMessage(error.message, true);
-    }
-});
-
-elements.historyButton.addEventListener("click", async () => {
-    try {
-        await refreshHistory();
-        showMessage("Transactions refreshed");
-    } catch (error) {
-        showMessage(error.message, true);
-    }
-});
-
-elements.logoutButton.addEventListener("click", () => {
-    clearToken();
-    showMessage("Logged out");
-});
+if (elements.logoutButton) {
+    elements.logoutButton.addEventListener("click", () => {
+        clearToken();
+        showMessage("Logged out");
+    });
+}
 
 updateSessionState();
 
