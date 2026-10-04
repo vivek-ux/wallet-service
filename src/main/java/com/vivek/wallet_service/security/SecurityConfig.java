@@ -27,11 +27,12 @@ public class SecurityConfig {
 
         http
             .csrf(csrf -> csrf.disable())
-            .cors(Customizer.withDefaults()) // Enable CORS support
+            .cors(Customizer.withDefaults())
             .sessionManagement(session ->
                     session.sessionCreationPolicy(SessionCreationPolicy.STATELESS)
             )
             .authorizeHttpRequests(auth -> auth
+                    // Public static assets & Auth routes
                     .requestMatchers(
                             "/",
                             "/index.html",
@@ -39,13 +40,13 @@ public class SecurityConfig {
                             "/app.js",
                             "/favicon.ico",
                             "/health",
-                            "/api/v1/auth/**"
-                    )
-                    .permitAll()
-                    .requestMatchers("/api/v1/accounts/**")
-                    .authenticated()
-                    .anyRequest()
-                    .authenticated()
+                            "/api/v1/auth/**",
+                            "/api/v1/auth/*"
+                    ).permitAll()
+                    
+                    // Protected endpoints
+                    .requestMatchers("/api/v1/accounts/**").authenticated()
+                    .anyRequest().authenticated()
             )
             .addFilterBefore(
                     jwtFilter,
